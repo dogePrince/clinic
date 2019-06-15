@@ -17,7 +17,7 @@ class Patient(models.Model):
     sex = models.CharField('性别', max_length=2, choices=SEX_CHOICES, default=FEMALE)
     age = models.IntegerField('年龄')
     phone_number = models.CharField('电话', max_length=20, blank=True, null=True)
-    register_date = models.DateTimeField('注册日期', default=timezone.now)
+    register_date = models.DateTimeField('注册日期', default=timezone.now, blank=True)
 
     def __str__(self):
         return self.name

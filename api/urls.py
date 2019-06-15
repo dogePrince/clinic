@@ -7,9 +7,9 @@ urlpatterns = [
     path('', views.index, name='index'),
 
     # for patient
-    # path('patient', views.patient, name='patient'),
-    path('patient/<int:patient_id>', views.patient_detail, name='patient_detail'),
-    # path('patient/new', views.patient_new, name='patient_new'),
+    path('patient', views.patient, name='patient'),
+    path('patient/<int:patient_id>', views.patient_by_id, name='patient_by_id'),
+    path('patient/save', views.patient_save, name='patient_save'),
 
     # for case
     # path('case', views.case, name='case'),
