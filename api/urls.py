@@ -12,9 +12,14 @@ urlpatterns = [
     path('patient/save', views.patient_save, name='patient_save'),
 
     # for case
-    # path('case', views.case, name='case'),
-    # path('case/<int:case_id>', views.case_detail, name='case_detail'),
-    # path('patient/<int:patient_id>/new_case', views.case_new, name='case_new'),
+    path('case', views.case, name='case'),
+    path('case/<int:case_id>', views.case_by_id, name='case_by_id'),
+    path('case/save', views.case_save, name='case_save'),
+
+    # for case
+    path('template', views.template, name='template'),
+    path('template/<int:template_id>', views.template_by_id, name='template_by_id'),
+    path('template/save', views.template_save, name='template_save'),
 
     # case queue
     # path('case_queue', views.case, name='case_queue'),

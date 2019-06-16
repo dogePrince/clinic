@@ -1,12 +1,10 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from api.models import Patient, Case, PrescriptionTemplate
-from api.form import PatientForm, PatientFormValid
+from api.form import PatientFormValid, CaseFormValid, PrescriptionTemplateFormValid
 from django.core.paginator import Paginator
 from django.db.models import Max
 import datetime
-
-date_time_format = "%Y-%m-%d %H:%M:%S"
 
 
 def index(request):
@@ -15,14 +13,66 @@ def index(request):
     return HttpResponse("There will be API document in the future.")
 
 
+# patient
 def patient(request):
     if request.method != 'GET':
         return raise_405(request.method)
 
-    page_num = int(request.GET.get('page', 1))
     patient_list = Patient.objects.annotate(last_case=Max('case__pub_date')).order_by('-last_case', '-register_date')
+    page_num = int(request.GET.get('page', 1))
 
-    paginator = Paginator(patient_list, 10)
+    return list_to_page_json(patient_list, page_num)
+
+
+def patient_by_id(request, patient_id):
+    return obj_by_id(request, Patient, patient_id)
+
+
+def patient_save(request):
+    return obj_save(request, Patient, PatientFormValid)
+
+
+# case
+def case(request):
+    if request.method != 'GET':
+        return raise_405(request.method)
+
+    case_list = Case.objects.all().order_by('-pub_date')
+    page_num = int(request.GET.get('page', 1))
+
+    return list_to_page_json(case_list, page_num)
+
+
+def case_by_id(request, case_id):
+    return obj_by_id(request, Case, case_id)
+
+
+def case_save(request):
+    return obj_save(request, Case, CaseFormValid)
+
+
+# prescription template
+def template(request):
+    if request.method != 'GET':
+        return raise_405(request.method)
+
+    template_list = PrescriptionTemplate.objects.all().order_by('name')
+    page_num = int(request.GET.get('page', 1))
+
+    return list_to_page_json(template_list, page_num)
+
+
+def template_by_id(request, template_id):
+    return obj_by_id(request, PrescriptionTemplate, template_id)
+
+
+def template_save(request):
+    return obj_save(request, PrescriptionTemplate, PrescriptionTemplateFormValid)
+
+
+# utils methods
+def list_to_page_json(obj_list, page_num, num_per_page=10):
+    paginator = Paginator(obj_list, num_per_page)
     if page_num > paginator.num_pages:
         return raise_page_out_of_range(page_num, paginator.num_pages)
     page_obj = paginator.page(page_num)
@@ -30,40 +80,39 @@ def patient(request):
     return JsonResponse(page_to_dict(page_obj))
 
 
-def patient_by_id(request, patient_id):
+def obj_by_id(request, model, obj_id):
     if request.method != 'GET':
         return raise_405(request.method)
 
-    patient_obj = get_object_or_404(Patient, pk=patient_id)
-    result = obj_to_dict(patient_obj)
+    case_obj = get_object_or_404(model, pk=obj_id)
+    result = obj_to_dict(case_obj)
 
     return JsonResponse(result)
 
 
-def patient_save(request):
+def obj_save(request, model, form):
     if request.method != 'POST':
         return raise_405(request.method)
 
-    print(request.POST)
-
-    patient_id = request.POST.get('id', None)
-    if patient_id:
-        patient_obj = get_object_or_404(Patient, pk=patient_id)
-        patient_form = PatientFormValid(request.POST, instance=patient_obj)
+    obj_id = request.POST.get('id', None)
+    if obj_id:
+        obj = get_object_or_404(model, pk=obj_id)
+        obj_form = form(request.POST, instance=obj)
     else:
-        patient_form = PatientFormValid(request.POST)
-    is_valid = patient_form.is_valid()
+        obj_form = form(request.POST)
+    is_valid = obj_form.is_valid()
     result = {'is_valid': is_valid}
     if is_valid:
-        patient_form.save()
+        obj_form.save()
 
     return JsonResponse(result)
 
 
-# utils methods
 def to_json_value(value):
     if type(value) == datetime.datetime:
         return str(value)
+    if type(value) in (Patient, PrescriptionTemplate):
+        return value.id
     return value
 
 
