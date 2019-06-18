@@ -32,12 +32,12 @@ class PrescriptionTemplate(models.Model):
 
 
 class Case(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, verbose_name='姓名', on_delete=models.CASCADE)
     pub_date = models.DateTimeField('来访日期', default=timezone.now)
     symptom = models.TextField('症状', blank=True, null=True)
-    template = models.ForeignKey(PrescriptionTemplate, on_delete=models.SET_NULL, blank=True, null=True)
+    template = models.ForeignKey(PrescriptionTemplate, verbose_name='方剂', on_delete=models.SET_NULL, blank=True, null=True)
+    dose_num = models.IntegerField('份数')
     prescription = models.TextField('处方')
-    # dose_num
     # price
 
     def __str__(self):
