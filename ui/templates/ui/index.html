@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="{% static 'ui/bower/bootstrap4/dist/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'ui/common.css' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'ui/icons/favicon.ico' %}"/>
+    <title>DY</title>
+  </head>
+  <body>
+    {% block content %}
+    {% endblock %}
+
+    <script src="{% static 'ui/bower/jquery/dist/jquery.min.js' %}"></script>
+    <script src="{% static 'ui/bower/popper.js/dist/umd/popper.min.js' %}"></script>
+    <script src="{% static 'ui/bower/bootstrap4/dist/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'ui/bower/vue/dist/vue.min.js' %}"></script>
+    <script src="{% static 'ui/index.js' %}"></script>
+
+    {% block scripts %}
+    {% endblock %}
+  </body>
+</html>
