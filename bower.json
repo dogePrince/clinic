@@ -1,0 +1,23 @@
+{
+  "name": "clinic",
+  "homepage": "https://github.com/dogePrince/clinic",
+  "description": "",
+  "main": "",
+  "authors": [
+    "dave yao"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap4": "^4.3.1",
+    "jquery": "^3.4.1",
+    "vue": "^2.6.10",
+    "popper.js": "^1.15.0"
+  }
+}
