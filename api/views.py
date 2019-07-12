@@ -1,7 +1,7 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from api.models import Patient, Case, PrescriptionTemplate
-from api.form import PatientFormValid, CaseFormValid, PrescriptionTemplateFormValid
+from api.form import PatientForm, CaseForm, PrescriptionTemplateForm
 from django.core.paginator import Paginator
 from django.db.models import Max
 import datetime
@@ -42,7 +42,7 @@ def patient_by_id(request, patient_id):
 
 
 def patient_save(request):
-    return obj_save(request, Patient, PatientFormValid)
+    return obj_save(request, Patient, PatientForm)
 
 
 # case
@@ -74,7 +74,7 @@ def case_by_id(request, case_id):
 
 
 def case_save(request):
-    return obj_save(request, Case, CaseFormValid)
+    return obj_save(request, Case, CaseForm)
 
 
 # prescription template
@@ -93,7 +93,7 @@ def template_by_id(request, template_id):
 
 
 def template_save(request):
-    return obj_save(request, PrescriptionTemplate, PrescriptionTemplateFormValid)
+    return obj_save(request, PrescriptionTemplate, PrescriptionTemplateForm)
 
 
 # utils methods
