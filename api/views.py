@@ -5,6 +5,7 @@ from api.form import PatientFormValid, CaseFormValid, PrescriptionTemplateFormVa
 from django.core.paginator import Paginator
 from django.db.models import Max
 import datetime
+import re
 
 
 def index(request):
@@ -18,14 +19,26 @@ def patient(request):
     if request.method != 'GET':
         return raise_405(request.method)
 
-    patient_list = Patient.objects.annotate(last_case=Max('case__pub_date')).order_by('-last_case', '-register_date')
     page_num = int(request.GET.get('page', 1))
+    verbose = check_param_true(request.GET.get('verbose'))
 
-    return list_to_page_json(patient_list, page_num)
+    extra_field = {}
+    if verbose:
+        extra_field['recent'] = patient_recent_case_dict
+
+    patient_list = Patient.objects.annotate(last_case=Max('case__pub_date')).order_by('-last_case', '-register_date')
+    return list_to_page_json(patient_list, page_num, **extra_field)
 
 
 def patient_by_id(request, patient_id):
-    return obj_by_id(request, Patient, patient_id)
+    if request.method != 'GET':
+        return raise_405(request.method)
+
+    verbose = check_param_true(request.GET.get('verbose'))
+    extra_field = {}
+    if verbose:
+        extra_field['recent'] = patient_recent_case_dict
+    return obj_by_id(request, Patient, patient_id, **extra_field)
 
 
 def patient_save(request):
@@ -37,14 +50,27 @@ def case(request):
     if request.method != 'GET':
         return raise_405(request.method)
 
-    case_list = Case.objects.all().order_by('-pub_date')
     page_num = int(request.GET.get('page', 1))
+    verbose = check_param_true(request.GET.get('verbose'))
 
-    return list_to_page_json(case_list, page_num)
+    extra_field = {}
+    if verbose:
+        extra_field['recent'] = case_to_patient_dict
+
+    case_list = Case.objects.all().order_by('-pub_date')
+    return list_to_page_json(case_list, page_num, **extra_field)
 
 
 def case_by_id(request, case_id):
-    return obj_by_id(request, Case, case_id)
+    if request.method != 'GET':
+        return raise_405(request.method)
+
+    verbose = check_param_true(request.GET.get('verbose'))
+
+    extra_field = {}
+    if verbose:
+        extra_field['recent'] = case_to_patient_dict
+    return obj_by_id(request, Case, case_id, **extra_field)
 
 
 def case_save(request):
@@ -71,21 +97,56 @@ def template_save(request):
 
 
 # utils methods
-def list_to_page_json(obj_list, page_num, num_per_page=10):
-    paginator = Paginator(obj_list, num_per_page)
+def check_param_true(param):
+    if type(param) is str:
+        return re.match('true', param, re.I)
+    return False
+
+
+def to_json_value(value):
+    if type(value) == datetime.datetime:
+        return value.astimezone().strftime('%Y-%m-%d %H:%M:%S')
+    if type(value) in (Patient, PrescriptionTemplate):
+        return value.id
+    return value
+
+
+def obj_to_dict(obj, **kwargs):
+    result = dict()
+    for field in obj._meta.fields:
+        value = getattr(obj, field.name)
+        value = to_json_value(value)
+        result[field.name] = value
+    for key, fun in kwargs.items():
+        result[key] = fun(obj)
+    return result
+
+
+def list_to_page_json(obj_list, page_num, per_page=10, **kwargs):
+    paginator = Paginator(obj_list, per_page)
     if page_num > paginator.num_pages:
-        return raise_page_out_of_range(page_num, paginator.num_pages)
+        page_num = paginator.num_pages
     page_obj = paginator.page(page_num)
 
-    return JsonResponse(page_to_dict(page_obj))
+    result_list = list()
+    for item in page_obj:
+        result_list.append(obj_to_dict(item, **kwargs))
+
+    result = {
+        'list': result_list,
+        'per_page': per_page,
+        'page_num': page_obj.number,
+        'total_page': page_obj.paginator.num_pages
+    }
+    return JsonResponse(result)
 
 
-def obj_by_id(request, model, obj_id):
+def obj_by_id(request, model, obj_id, **kwargs):
     if request.method != 'GET':
         return raise_405(request.method)
 
     case_obj = get_object_or_404(model, pk=obj_id)
-    result = obj_to_dict(case_obj)
+    result = obj_to_dict(case_obj, **kwargs)
 
     return JsonResponse(result)
 
@@ -101,54 +162,22 @@ def obj_save(request, model, form):
     else:
         obj_form = form(request.POST)
     is_valid = obj_form.is_valid()
-    result = {'is_valid': is_valid}
+    result = {'success': is_valid}
     if is_valid:
         obj_form.save()
-
     return JsonResponse(result)
 
 
-def to_json_value(value):
-    if type(value) == datetime.datetime:
-        return str(value)
-    if type(value) in (Patient, PrescriptionTemplate):
-        return value.id
-    return value
+def patient_recent_case_dict(patient_obj):
+    case_obj = patient_obj.case_set.last()
+    return obj_to_dict(case_obj) if case_obj is not None else {}
 
-
-def obj_to_dict(obj):
-    result = dict()
-    for field in obj._meta.fields:
-        value = getattr(obj, field.name)
-        value = to_json_value(value)
-        result[field.name] = value
-
-    if type(obj) == Patient:
-        recent_case = obj.case_set.last()
-        if recent_case is None:
-            recent_coming = obj.register_date
-        else:
-            recent_coming = recent_case.pub_date
-        result['recent_coming'] = to_json_value(recent_coming)
-    return result
-
-
-def page_to_dict(page_obj):
-    result_list = list()
-    for item in page_obj:
-        result_list.append(obj_to_dict(item))
-
-    result = {
-        'list': result_list,
-        'number': page_obj.number,
-        'total': page_obj.paginator.num_pages
-    }
-    return result
-
+def case_to_patient_dict(case_obj):
+    return obj_to_dict (case_obj.patient)
 
 def raise_405(method):
     return HttpResponse(f"Invalid method: {method}", status=405)
 
 
-def raise_page_out_of_range(num, total):
-    return HttpResponse(f'Page {num} out of range. (Total pages: {total})', status=404)
+# def raise_page_out_of_range(num, total):
+#     return HttpResponse(f'Page {num} out of range. (Total pages: {total})', status=404)
