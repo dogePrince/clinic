@@ -25,5 +25,5 @@ urlpatterns = [
     # path('case_queue', views.case, name='case_queue'),
 
     # for test
-    # path('test', views.test, name='test'),
+    path('test', views.test, name='test'),
 ]

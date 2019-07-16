@@ -1,12 +1,14 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models import Max
+from django.forms.models import model_to_dict
+from django.core.paginator import Paginator
 from api.models import Patient, Case, PrescriptionTemplate
 from api.form import PatientForm, CaseForm, PrescriptionTemplateForm
-from django.core.paginator import Paginator
-from django.db.models import Max
 import datetime
 import re
-
+import json
+from django.views.decorators.csrf import csrf_exempt
 
 def index(request):
     if request.method != 'GET':
@@ -21,6 +23,7 @@ def patient(request):
 
     page_num = int(request.GET.get('page', 1))
     verbose = check_param_true(request.GET.get('verbose'))
+    print(verbose)
 
     extra_field = {}
     if verbose:
@@ -41,6 +44,7 @@ def patient_by_id(request, patient_id):
     return obj_by_id(request, Patient, patient_id, **extra_field)
 
 
+@csrf_exempt
 def patient_save(request):
     return obj_save(request, Patient, PatientForm)
 
@@ -55,7 +59,7 @@ def case(request):
 
     extra_field = {}
     if verbose:
-        extra_field['recent'] = case_to_patient_dict
+        extra_field['patient'] = case_to_patient_dict
 
     case_list = Case.objects.all().order_by('-pub_date')
     return list_to_page_json(case_list, page_num, **extra_field)
@@ -69,10 +73,11 @@ def case_by_id(request, case_id):
 
     extra_field = {}
     if verbose:
-        extra_field['recent'] = case_to_patient_dict
+        extra_field['patient'] = case_to_patient_dict
     return obj_by_id(request, Case, case_id, **extra_field)
 
 
+@csrf_exempt
 def case_save(request):
     return obj_save(request, Case, CaseForm)
 
@@ -92,6 +97,7 @@ def template_by_id(request, template_id):
     return obj_by_id(request, PrescriptionTemplate, template_id)
 
 
+@csrf_exempt
 def template_save(request):
     return obj_save(request, PrescriptionTemplate, PrescriptionTemplateForm)
 
@@ -103,20 +109,8 @@ def check_param_true(param):
     return False
 
 
-def to_json_value(value):
-    if type(value) == datetime.datetime:
-        return value.astimezone().strftime('%Y-%m-%d %H:%M:%S')
-    if type(value) in (Patient, PrescriptionTemplate):
-        return value.id
-    return value
-
-
 def obj_to_dict(obj, **kwargs):
-    result = dict()
-    for field in obj._meta.fields:
-        value = getattr(obj, field.name)
-        value = to_json_value(value)
-        result[field.name] = value
+    result = model_to_dict(obj)
     for key, fun in kwargs.items():
         result[key] = fun(obj)
     return result
@@ -145,9 +139,8 @@ def obj_by_id(request, model, obj_id, **kwargs):
     if request.method != 'GET':
         return raise_405(request.method)
 
-    case_obj = get_object_or_404(model, pk=obj_id)
-    result = obj_to_dict(case_obj, **kwargs)
-
+    obj = get_object_or_404(model, pk=obj_id)
+    result = obj_to_dict(obj, **kwargs)
     return JsonResponse(result)
 
 
@@ -155,16 +148,21 @@ def obj_save(request, model, form):
     if request.method != 'POST':
         return raise_405(request.method)
 
-    obj_id = request.POST.get('id', None)
+    request_data = json.loads(request.body.decode())
+
+    obj_id = request_data.get('id', None)
     if obj_id:
         obj = get_object_or_404(model, pk=obj_id)
-        obj_form = form(request.POST, instance=obj)
+        obj_form = form(request_data, instance=obj)
     else:
-        obj_form = form(request.POST)
+        obj_form = form(request_data)
     is_valid = obj_form.is_valid()
     result = {'success': is_valid}
     if is_valid:
         obj_form.save()
+    else:
+        result['errors'] = str(obj_form.errors)
+        result['non_field_errors'] = str(obj_form.non_field_errors)
     return JsonResponse(result)
 
 
@@ -172,12 +170,15 @@ def patient_recent_case_dict(patient_obj):
     case_obj = patient_obj.case_set.last()
     return obj_to_dict(case_obj) if case_obj is not None else {}
 
+
 def case_to_patient_dict(case_obj):
-    return obj_to_dict (case_obj.patient)
+    return obj_to_dict(case_obj.patient)
+
 
 def raise_405(method):
     return HttpResponse(f"Invalid method: {method}", status=405)
 
 
-# def raise_page_out_of_range(num, total):
-#     return HttpResponse(f'Page {num} out of range. (Total pages: {total})', status=404)
+@csrf_exempt
+def test(request):
+    return
