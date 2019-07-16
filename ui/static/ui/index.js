@@ -1,4 +1,4 @@
-var routes_mixin = {
+Vue.mixin({
   beforeCreate: function() {
     this.type_to_regex= {
       'number': '\\d',
@@ -35,6 +35,24 @@ var routes_mixin = {
         'friendly_name': friendly_name,
         'regex': this.url_template_to_regex(template)
       };
+    },
+    url_template_to_regex: function (url) {
+      var regex = url;
+      var match = this.get_url_param_match(regex);
+      while (match) {
+        var index = match.index;
+        var length = match[0].length;
+        var type = match[1];
+        var name = match[2];
+        var filler = `(?<${name}>${this.type_to_regex[type]}+)`;
+
+        regex = regex.substring(0, index) + filler + regex.substring(index+length);
+        match = this.get_url_param_match(regex);
+      }
+      return new RegExp('^' + regex + '$');
+    },
+    get_url_param_match: function (url) {
+      return this.param_pattern.exec(url);
     },
     route_by_alias: function (alias) {
       for (var route of this.routes) {
@@ -83,30 +101,95 @@ var routes_mixin = {
       if (params.length !== 0) {
         url += '?' + params.join('&')
       }
-
       return url;
     },
-    reverse_url_by_alias: function (alias, kwargs) {
+    route_obj_by_alias: function (alias, kwargs) {
       var route = this.route_by_alias(alias);
-      return this.reverse_url(route, kwargs);
-    },
-    url_template_to_regex: function (url) {
-      var regex = url;
-      var match = this.get_url_param_match(regex);
-      while (match) {
-        var index = match.index;
-        var length = match[0].length;
-        var type = match[1];
-        var name = match[2];
-        var filler = `(?<${name}>${this.type_to_regex[type]}+)`;
-
-        regex = regex.substring(0, index) + filler + regex.substring(index+length);
-        match = this.get_url_param_match(regex);
-      }
-      return new RegExp('^' + regex + '$');
-    },
-    get_url_param_match: function (url) {
-      return this.param_pattern.exec(url);
+      return {
+        url: this.reverse_url(route, kwargs),
+        friendly_name: route.friendly_name
+      };
     }
   }
-}
+});
+
+Vue.mixin({
+  beforeCreate: function() {
+    this.axios_instance = axios.create({
+      baseURL: 'http://localhost:8000/api',
+      timeout: 1000
+    });
+    this.param_pattern = /<([a-z]+):([a-z]+)>/;
+  },
+  methods: {
+    get_patient: function(page, verbose) {
+      return this.axios_instance.get('/patient', {
+          params: {
+            page: page,
+            verbose: verbose
+          }
+      });
+    },
+    get_patient_by_id: function(id, verbose) {
+      return this.axios_instance.get(`/patient/${id}`, {
+          params: {
+            verbose: verbose
+          }
+      });
+    },
+    post_patient: function(form) {
+      return this.axios_instance.post('/patient/save', {
+        id: form.id,
+        name: form.name,
+        sex: form.sex,
+        age: form.age,
+        phone_number: form.phone_number
+      })
+    },
+    get_case: function(page, verbose) {
+      return this.axios_instance.get('/case', {
+          params: {
+            page: page,
+            verbose: verbose
+          }
+      });
+    },
+    get_case_by_id: function(id, verbose) {
+      return this.axios_instance.get(`/case/${id}`, {
+          params: {
+            verbose: verbose
+          }
+      });
+    },
+    post_case: function(form) {
+      return this.axios_instance.post('/case/save', {
+        id: form.id,
+        patient: form.patient,
+        symptom: form.symptom,
+        template: form.template,
+        dose_num: form.dose_num,
+        prescription: form.prescription
+      })
+    },
+    get_template: function(page, verbose) {
+      return this.axios_instance.get('/template', {
+          params: {
+            page: page
+          }
+      });
+    },
+    get_patient_by_id: function(id, verbose) {
+      return this.axios_instance.get(`/template/${id}`, {
+          params: {
+          }
+      });
+    },
+    post_patient: function(form) {
+      return this.axios_instance.post('/template/save', {
+        id: form.id,
+        name: form.name,
+        prescription: form.prescription
+      })
+    }
+  }
+});
