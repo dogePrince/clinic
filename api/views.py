@@ -21,25 +21,29 @@ def patient(request):
     if request.method != 'GET':
         return raise_405(request.method)
 
-    page_num = int(request.GET.get('page', 1))
-    verbose = check_param_true(request.GET.get('verbose'))
-    print(verbose)
+    page_num = int(request.GET.get('page', 0))
+    tiny_field = check_param_true(request.GET.get('tiny_field'))
+    recent_field = check_param_true(request.GET.get('recent_field'))
 
     extra_field = {}
-    if verbose:
+    if recent_field:
         extra_field['recent'] = patient_recent_case_dict
 
     patient_list = Patient.objects.annotate(last_case=Max('case__pub_date')).order_by('-last_case', '-register_date')
-    return list_to_page_json(patient_list, page_num, **extra_field)
+    if page_num:
+        return list_to_page_json(patient_list, page_num, **extra_field)
+    if tiny_field:
+        return list_to_json(patient_list, ['id', 'name'])
+    return list_to_json(patient_list)
 
 
 def patient_by_id(request, patient_id):
     if request.method != 'GET':
         return raise_405(request.method)
 
-    verbose = check_param_true(request.GET.get('verbose'))
+    recent_field = check_param_true(request.GET.get('recent_field'))
     extra_field = {}
-    if verbose:
+    if recent_field:
         extra_field['recent'] = patient_recent_case_dict
     return obj_by_id(request, Patient, patient_id, **extra_field)
 
@@ -55,13 +59,17 @@ def case(request):
         return raise_405(request.method)
 
     page_num = int(request.GET.get('page', 1))
-    verbose = check_param_true(request.GET.get('verbose'))
+    patient_id = int(request.GET.get('patient_id', 0))
+    patient_field = check_param_true(request.GET.get('patient_field'))
 
     extra_field = {}
-    if verbose:
-        extra_field['patient'] = case_to_patient_dict
+    if patient_field:
+        extra_field['patient_field'] = case_to_patient_dict
 
-    case_list = Case.objects.all().order_by('-pub_date')
+    if patient_id:
+        case_list = Case.objects.all().filter(patient__id=patient_id).order_by('-pub_date')
+    else:
+        case_list = Case.objects.all().order_by('-pub_date')
     return list_to_page_json(case_list, page_num, **extra_field)
 
 
@@ -69,10 +77,10 @@ def case_by_id(request, case_id):
     if request.method != 'GET':
         return raise_405(request.method)
 
-    verbose = check_param_true(request.GET.get('verbose'))
+    patient_field = check_param_true(request.GET.get('patient_field'))
 
     extra_field = {}
-    if verbose:
+    if patient_field:
         extra_field['patient'] = case_to_patient_dict
     return obj_by_id(request, Case, case_id, **extra_field)
 
@@ -88,9 +96,14 @@ def template(request):
         return raise_405(request.method)
 
     template_list = PrescriptionTemplate.objects.all().order_by('name')
-    page_num = int(request.GET.get('page', 1))
+    page_num = int(request.GET.get('page', 0))
+    tiny_field = check_param_true(request.GET.get('tiny_field'))
 
-    return list_to_page_json(template_list, page_num)
+    if page_num:
+        return list_to_page_json(template_list, page_num)
+    if tiny_field:
+        return list_to_json(template_list, ['id', 'name'])
+    return list_to_json(template_list)
 
 
 def template_by_id(request, template_id):
@@ -109,11 +122,25 @@ def check_param_true(param):
     return False
 
 
-def obj_to_dict(obj, **kwargs):
+def obj_to_dict(obj, fields=None, **kwargs):
     result = model_to_dict(obj)
+    if fields is not None:
+        result = {f: result[f] for f in fields}
+
     for key, fun in kwargs.items():
         result[key] = fun(obj)
     return result
+
+
+def list_to_json(obj_list, fields=None, **kwargs):
+    result_list = list()
+    for item in obj_list:
+        result_list.append(obj_to_dict(item, fields=fields, **kwargs))
+    result = {
+        'list': result_list,
+        'count': len(obj_list)
+    }
+    return JsonResponse(result)
 
 
 def list_to_page_json(obj_list, page_num, per_page=10, **kwargs):
