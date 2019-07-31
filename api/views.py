@@ -58,7 +58,7 @@ def case(request):
     if request.method != 'GET':
         return raise_405(request.method)
 
-    page_num = int(request.GET.get('page', 1))
+    page_num = int(request.GET.get('page', 0))
     patient_id = int(request.GET.get('patient_id', 0))
     patient_field = check_param_true(request.GET.get('patient_field'))
 
@@ -70,7 +70,9 @@ def case(request):
         case_list = Case.objects.all().filter(patient__id=patient_id).order_by('-pub_date')
     else:
         case_list = Case.objects.all().order_by('-pub_date')
-    return list_to_page_json(case_list, page_num, **extra_field)
+    if page_num:
+        return list_to_page_json(case_list, page_num, **extra_field)
+    return list_to_json(case_list)
 
 
 def case_by_id(request, case_id):
