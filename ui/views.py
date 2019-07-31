@@ -4,19 +4,12 @@ from api.form import PatientForm, CaseForm, PrescriptionTemplateForm
 from api.models import Patient, Case, PrescriptionTemplate
 
 
-def index(request):
-    return HttpResponse("Root path of api for clinic.")
+def home(request):
+    return render(request, 'ui/home.html')
 
 
-def obj_to_dict(obj):
-    result = dict()
-    for field in obj._meta.fields:
-        value = getattr(obj, field.name)
-        if type(value) not in (str, int):
-            value = str(value)
-        result[field.name] = value
-    return result
-
+def search(request):
+    return render(request, 'ui/search.html')
 
 def patient_detail(request, patient_id):
     patient_form = PatientForm()

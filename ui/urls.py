@@ -5,7 +5,8 @@ from . import views
 app_name = 'cm'
 urlpatterns = [
     # main page
-    path('', views.index, name='index'),
+    path('', views.home, name='home'),
+    path('search', views.search, name='search'),
 
     # for patient
     # path('patient', views.patient, name='patient'),
@@ -24,4 +25,3 @@ urlpatterns = [
     path('test', views.test, name='test'),
     path('test_vue', views.test_vue, name='test_vue'),
 ]
-
