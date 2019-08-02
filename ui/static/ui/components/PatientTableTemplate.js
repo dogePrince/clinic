@@ -32,8 +32,7 @@ Vue.component('patient-table-template', {
           alias: 'patient_new',
           param: {}
         }
-      },
-      sexes: {"F": "女", "M": "男", "O": "其他"}
+      }
     }
   }
 });

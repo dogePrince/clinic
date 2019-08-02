@@ -71,8 +71,7 @@ Vue.component('case-form-template', {
   },
   data: function() {
     return {
-      template_option: [],
-      sexes: {"F": "女", "M": "男", "O": "其他"}
+      template_option: []
     }
   }
 });

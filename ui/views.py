@@ -12,10 +12,7 @@ def search(request):
     return render(request, 'ui/search.html')
 
 def patient_detail(request, patient_id):
-    patient_form = PatientForm()
-    content = {'patient_form': patient_form}
-
-    return render(request, 'ui/patient/patient_detail.html', content)
+    return render(request, 'ui/patient.html')
 
 
 def case_detail(request, case_id):

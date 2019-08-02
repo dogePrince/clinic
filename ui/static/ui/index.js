@@ -23,6 +23,10 @@ Vue.mixin({
         this.route_object('/ui/case/<number:id>', 'case_detail', '病例详情'),
         this.route_object('/ui/case/new', 'case_new', '新建病例'),
 
+        this.route_object('/ui/template', 'template', '模板总览'),
+        this.route_object('/ui/template/<number:id>', 'template_detail', '模板详情'),
+        this.route_object('/ui/template/new', 'template_new', '新建模板'),
+
         this.route_object('/ui/test', 'test', '测试页面')
       ]
     }
@@ -122,19 +126,26 @@ Vue.mixin({
     this.param_pattern = /<([a-z]+):([a-z]+)>/;
   },
   methods: {
-    get_patient: function(page, verbose) {
+    get_patient: function({ page=null, recent_field=null } = {}) {
       return this.axios_instance.get('/patient', {
-          params: {
-            page: page,
-            verbose: verbose
-          }
+        params: {
+          page: page,
+          recent_field: recent_field
+        }
       });
     },
-    get_patient_by_id: function(id, verbose) {
+    get_patient_option: function() {
+      return this.axios_instance.get('/patient', {
+        params: {
+          tiny_field: true
+        }
+      });
+    },
+    get_patient_by_id: function(id, { recent_field=null } = {}) {
       return this.axios_instance.get(`/patient/${id}`, {
-          params: {
-            verbose: verbose
-          }
+        params: {
+          recent_field: recent_field
+        }
       });
     },
     post_patient: function(form) {
@@ -146,18 +157,19 @@ Vue.mixin({
         phone_number: form.phone_number
       })
     },
-    get_case: function(page, verbose) {
+    get_case: function({ page=null, patient_field=null, patient_id=null } = {}) {
       return this.axios_instance.get('/case', {
           params: {
             page: page,
-            verbose: verbose
+            patient_field: patient_field,
+            patient_id: patient_id
           }
       });
     },
-    get_case_by_id: function(id, verbose) {
+    get_case_by_id: function(id, { patient_field=null } = {}) {
       return this.axios_instance.get(`/case/${id}`, {
           params: {
-            verbose: verbose
+            patient_field: patient_field
           }
       });
     },
@@ -171,20 +183,24 @@ Vue.mixin({
         prescription: form.prescription
       })
     },
-    get_template: function(page, verbose) {
+    get_template: function(page) {
       return this.axios_instance.get('/template', {
           params: {
             page: page
           }
       });
     },
-    get_patient_by_id: function(id, verbose) {
-      return this.axios_instance.get(`/template/${id}`, {
-          params: {
-          }
+    get_template_option: function() {
+      return this.axios_instance.get('/template', {
+        params: {
+          tiny_field: true
+        }
       });
     },
-    post_patient: function(form) {
+    get_template_by_id: function(id) {
+      return this.axios_instance.get(`/template/${id}`);
+    },
+    post_template: function(form) {
       return this.axios_instance.post('/template/save', {
         id: form.id,
         name: form.name,
@@ -193,3 +209,9 @@ Vue.mixin({
     }
   }
 });
+
+Vue.mixin({
+  beforeCreate: function() {
+    this.sexes = {"F": "女", "M": "男", "O": "其他"};
+  }
+})

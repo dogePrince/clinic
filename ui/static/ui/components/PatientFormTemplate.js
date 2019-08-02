@@ -33,12 +33,7 @@ Vue.component('patient-form-template', {
         </div>
       </div>
     </form>
-  `,
-  data: function() {
-    return {
-      sexes: {"F": "女", "M": "男", "O": "其他"}
-    }
-  }
+  `
 });
 
 

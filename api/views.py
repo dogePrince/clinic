@@ -64,7 +64,7 @@ def case(request):
 
     extra_field = {}
     if patient_field:
-        extra_field['patient_field'] = case_to_patient_dict
+        extra_field['patient'] = case_to_patient_dict
 
     if patient_id:
         case_list = Case.objects.all().filter(patient__id=patient_id).order_by('-pub_date')

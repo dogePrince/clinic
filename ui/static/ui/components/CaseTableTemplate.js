@@ -32,8 +32,7 @@ Vue.component('case-table-template', {
           alias: 'case_new',
           param: { patient: 1, template: 1 }
         }
-      },
-      sexes: {"F": "女", "M": "男", "O": "其他"}
+      }
     }
   }
 });
