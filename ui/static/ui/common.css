@@ -4,6 +4,11 @@ body {
 table caption.caption-top {
   caption-side: top;
 }
+textarea {
+  display: block;
+  height: auto;
+  overflow-y: hidden;
+}
 .div-short {
   padding-top: 0px;
   padding-bottom: 0px;

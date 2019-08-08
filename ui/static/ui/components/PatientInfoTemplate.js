@@ -8,13 +8,5 @@ Vue.component('patient-info-template', {
       <li>性别: [% sexes[patient_info.sex] %]</li>
       <li>电话: [% patient_info.phone_number %]</li>
     </ul>
-  `,
-  data: function() {
-    return {
-      status_dict: {
-        "success": 'alert-success',
-        "failed": 'alert-danger'
-      }
-    };
-  }
+  `
 });
