@@ -188,7 +188,8 @@ def obj_save(request, model, form):
     is_valid = obj_form.is_valid()
     result = {'success': is_valid}
     if is_valid:
-        obj_form.save()
+        saved_obj = obj_form.save()
+        result['data'] = obj_to_dict(saved_obj)
     else:
         result['errors'] = str(obj_form.errors)
         result['non_field_errors'] = str(obj_form.non_field_errors)

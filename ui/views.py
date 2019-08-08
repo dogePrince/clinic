@@ -16,6 +16,10 @@ def patient_detail(request, patient_id):
     return render(request, 'ui/patient.html')
 
 
+def patient_new(request):
+    return render(request, 'ui/patient_new.html')
+
+
 def case_detail(request, case_id):
     return render(request, 'ui/case.html')
 

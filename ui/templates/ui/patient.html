@@ -59,6 +59,11 @@
       this.patient_id = parseInt(current_url.substring(current_url.lastIndexOf('/') + 1), 10);
       this.nav_items = [['home'], ['search'], ['patient_detail', {'id': this.patient_id}]];
 
+      if (new URLSearchParams(window.location.search).get('save')) {
+        this.alert_list.push({content: "新建成功！", status: "success"});
+        setTimeout(function(){ this_vm.alert_list.shift(); }, 3000);
+      }
+
       var this_vm = this;
       this.load_patient()
         .then(function () {
