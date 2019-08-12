@@ -3,7 +3,6 @@ Vue.component('case-form-template', {
   props: ['case_obj', 'patient_option', 'template_option'],
   template: `
     <form>
-      <input type="hidden" name="id" id="id_id" v-if="case_obj.id" v-model="case_obj.id">
       <div class="form-row">
         <div class="form-group col-md-6">
           <label>姓名</label>
@@ -25,11 +24,12 @@ Vue.component('case-form-template', {
           <label>注册时间</label>
           <input class="form-control" type="text" v-model="patient_obj.register_date" disabled>
         </div>
-        <div v-if="patient_obj.recent" class="form-group col-md-6">
-          <label>最近来访</label>
-          <input class="form-control" type="text" v-model="patient_obj.recent.pub_date" disabled>
-        </div>
         <div class="form-group col-md-6">
+          <label>最近来访</label>
+          <input v-if="patient_obj.recent" class="form-control" type="text" v-model="patient_obj.recent.pub_date" disabled>
+          <input v-else class="form-control" type="text" disabled>
+        </div>
+        <div v-if="case_obj.id" class="form-group col-md-6">
           <label>此次来访</label>
           <input class="form-control" type="text" v-model="case_obj.pub_date" disabled>
         </div>
@@ -55,35 +55,12 @@ Vue.component('case-form-template', {
       </div>
     </form>
   `,
-  created: function() {
-    // this.load_patient_option();
-    // this.load_template_option();
-  },
   computed: {
     template_value: function() {
       return this.case_obj.template;
     }
   },
   methods: {
-    load_patient_option: function() {
-      var this_vm = this;
-      this.get_patient_option().then(function (response) {
-        this_vm.patient_option = response.data.list.sort(this_vm.chinese_compare);;
-      }).catch(function (error) {
-        console.log(error);
-      });
-    },
-    load_template_option: function() {
-      var this_vm = this;
-      this.get_template_option().then(function (response) {
-        this_vm.template_option = response.data.list.sort(this_vm.chinese_compare);;
-      }).catch(function (error) {
-        console.log(error);
-      });
-    },
-    chinese_compare: function(var1, var2) {
-      return var1.name.localeCompare(var2.name, "zh-CN");
-    },
     load_patient: function() {
       var this_vm = this;
       return this.get_patient_by_id(this.case_obj.patient, {recent_field: true})
@@ -93,8 +70,8 @@ Vue.component('case-form-template', {
     },
     load_template: function() {
       var this_vm = this;
-      if (this_vm.case_obj.template == ''){
-        this_vm.case_obj.prescription = '';
+      if (this.case_obj.template == ''){
+        this.case_obj.prescription = '';
         return
       }
       this.get_template_by_id(this.case_obj.template)
@@ -104,15 +81,15 @@ Vue.component('case-form-template', {
     }
   },
   watch: {
-    case_obj: function() {
-      this.load_patient();
+    case_obj: function(newVal, oldVal) {
+      if (this.case_obj.patient) {
+        this.load_patient();
+      }
     }
   },
   data: function() {
     return {
-      patient_obj: [],
-      patient_option: [],
-      template_option: []
+      patient_obj: []
     };
   }
 });

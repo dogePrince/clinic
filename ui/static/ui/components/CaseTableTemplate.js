@@ -1,6 +1,6 @@
 Vue.component('case-table-template', {
   delimiters: ['[%', '%]'],
-  props: ['case_list'],
+  props: ['case_list', 'btn_param'],
   template: `
     <table class="table table-hover">
       <table-caption-template :info="caption_info"></table-caption-template>
@@ -30,7 +30,7 @@ Vue.component('case-table-template', {
         table_name: "病例列表",
         btn_new: {
           alias: 'case_new',
-          param: { patient: 1, template: 1 }
+          param: this.btn_param
         }
       }
     }

@@ -3,7 +3,6 @@ Vue.component('patient-form-template', {
   props: ['patient_obj'],
   template: `
     <form>
-      <input type="hidden" name="id" id="id_id" v-if="patient_obj.id" v-model="patient_obj.id" >
       <div class="form-row">
         <div class="form-group col-md-6">
           <label>姓名</label>

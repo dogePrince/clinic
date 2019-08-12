@@ -17,7 +17,7 @@ urlpatterns = [
     # for case
     # path('case', views.case, name='case'),
     path('case/<int:case_id>', views.case_detail, name='case_detail'),
-    # path('patient/<int:patient_id>/new_case', views.case_new, name='case_new'),
+    path('case/new', views.case_new, name='case_new'),
 
     # case queue
     # path('case_queue', views.case, name='case_queue'),

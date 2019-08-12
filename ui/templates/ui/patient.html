@@ -18,7 +18,7 @@
         <button type="button" class="btn btn-primary" v-on:click="submit">更改访客</button>
         <br v-for="i in 3"/>
         <h3>历史记录</h3>
-        <case-table-template :case_list="case_list"></case-table-template>
+        <case-table-template :case_list="case_list" :btn_param="btn_new_param"></case-table-template>
         <pagination-template :info="page_info" :jump="jump" class="justify-content-center"></pagination-template>
       </div>
     </div>
@@ -58,6 +58,7 @@
       var current_url = window.location.pathname;
       this.patient_id = parseInt(current_url.substring(current_url.lastIndexOf('/') + 1), 10);
       this.nav_items = [['home'], ['search'], ['patient_detail', {'id': this.patient_id}]];
+      this.btn_new_param.patient = this.patient_id;
 
       if (new URLSearchParams(window.location.search).get('save')) {
         this.alert_list.push({content: "新建成功！", status: "success"});
@@ -77,6 +78,7 @@
       case_list: [],
       page_info: {},
       alert_list: [],
+      btn_new_param: {},
       modal_info: {
         id: 'diffModal',
         title: '确认更改吗？',
