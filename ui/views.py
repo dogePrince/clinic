@@ -28,6 +28,10 @@ def case_new(request):
     return render(request, 'ui/case_new.html')
 
 
+def template_detail(request, template_id):
+    return render(request, 'ui/template.html')
+
+
 def test(request):
     # template_form = PrescriptionTemplateForm()
     # content = {'template_form': template_form}
