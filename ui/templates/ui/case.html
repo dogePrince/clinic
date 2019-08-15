@@ -94,6 +94,23 @@
         });
       },
       init_page_for_new_case: function() {
+        var url_param = new URLSearchParams(window.location.search);
+        var patient_id = url_param.get('patient');
+        var case_id = url_param.get('case');
+        patient_id = patient_id && parseInt(patient_id, 10);
+        case_id = case_id && parseInt(case_id, 10);
+
+        var this_vm = this;
+
+        if (patient_id) {
+          setTimeout(function() {
+            this_vm.case_obj = {patient: patient_id, template: null};
+          }, 1);
+        }else if(case_id) {
+          this.load_case(case_id).then(function() {
+            this_vm.case_obj.id = null;
+          });
+        }
         this.nav_items = [['home'], ['search'], ['case_new']];
       },
       chinese_compare: function(var1, var2) {

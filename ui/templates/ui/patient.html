@@ -65,7 +65,7 @@
       }
     },
     data: {
-      patient_obj: {},
+      patient_obj: {sex: 'F'},
       patient_obj_old: {},
       case_list: [],
       page_info: {},
@@ -111,18 +111,18 @@
       load_patient: function(patient_id) {
         var this_vm = this;
         return this.get_patient_by_id(patient_id, {recent_field: true})
-          .then(function (response) {
-            this_vm.patient_obj = response.data;
+          .then(function ({data}) {
+            this_vm.patient_obj = data;
           });
       },
       load_case_page: function(page) {
         var this_vm = this;
         this.get_case({page: page, patient_field: true, patient_id: this.patient_id})
-          .then(function (response) {
-            this_vm.case_list = response.data.list;
+          .then(function ({data}) {
+            this_vm.case_list = data.list;
             this_vm.page_info = {
-              current: response.data.page_num,
-              total: response.data.total_page
+              current: data.page_num,
+              total: data.total_page
             }
           });
       },
@@ -132,11 +132,16 @@
       confirm: function() {
         var this_vm = this;
         this.post_patient(this.patient_obj)
-          .then(function (response) {
-            if (response.data.success) {
-              $(this_vm.modal_id).modal('hide');
-              this_vm.alert_list.push({content: "修改成功！", status: "success"});
-              setTimeout(function(){ this_vm.alert_list.shift() }, 3000);
+          .then(function ({data}) {
+            if (data.success) {
+              if (this_vm.for_new) {
+                window.location.href = this_vm.route_obj_by_alias('patient_detail', {id: data.data.id, save: true}).url;
+              }
+              else {
+                $(this_vm.modal_id).modal('hide');
+                this_vm.alert_list.push({content: "修改成功！", status: "success"});
+                setTimeout(function(){ this_vm.alert_list.shift() }, 3000);
+              }
             }
           }).catch(function (error) {
             console.log(error);
