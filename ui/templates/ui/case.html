@@ -5,7 +5,7 @@
 <div id="app_patient">
   <navbar-template></navbar-template>
   <breadcrumb-template :nav_items="nav_items"></breadcrumb-template>
-  <div class="container" style="position: relative;">
+  <div class="container">
     <div class="alert-container">
       <transition-group name="list" tag="div">
         <alert-template v-for="alert in alert_list" :key="alert.content" :status="alert.status">[% alert.content %]</alert-template>
@@ -13,22 +13,20 @@
     </div>
     <div class="row justify-content-center">
       <div class="col-8">
-        <h3>病例详情</h3>
+        <h3 v-if="for_new">新建病例</h3>
+        <h3 v-else>病例详情</h3>
         <case-form-template :case_obj="case_obj" :patient_option="patient_option" :template_option="template_option"></case-form-template>
-        <button type="button" class="btn btn-primary" v-on:click="submit">更改访客</button>
+        <button v-if="for_new" type="button" class="btn btn-primary" v-on:click="submit">新建访客</button>
+        <button v-else type="button" class="btn btn-primary" v-on:click="submit">更改访客</button>
       </div>
     </div>
     <br v-for="i in 2"/>
     <modal-template :info="modal_info" :confirm="confirm">
-      <div class="row">
-        <div class="col-6">修改前：</div>
-        <div class="col-6">修改后：</div>
-        <div class="col-6 border-top border-right">
-          <case-info-template :case_info="case_obj_old" :patient_option="patient_option" :template_option="template_option"></case-info-template>
-        </div>
-        <div class="col-6 border-top border-left">
-          <case-info-template :case_info="case_obj" :patient_option="patient_option" :template_option="template_option"></case-info-template>
-        </div>
+      <div v-if="for_new" class="row">
+        <case-info-template :case_info="[case_obj]" :patient_option="patient_option" :template_option="template_option"></case-info-template>
+      </div>
+      <div v-else class="row">
+        <case-info-template :case_info="[case_obj_old, case_obj]" :patient_option="patient_option" :template_option="template_option"></case-info-template>
       </div>
     </modal-template>
   </div>
@@ -52,20 +50,18 @@
     el: '#app_patient',
     created: function() {
       var current_url = window.location.pathname;
-      this.case_id = parseInt(current_url.substring(current_url.lastIndexOf('/') + 1), 10);
-      this.nav_items = [['home'], ['search'], ['case_detail', {'id': this.case_id}]];
+      var last_string = current_url.substring(current_url.lastIndexOf('/') + 1);
 
-      if (new URLSearchParams(window.location.search).get('save')) {
-        this.alert_list.push({content: "新建成功！", status: "success"});
-        setTimeout(function(){ this_vm.alert_list.shift(); }, 3000);
+      if (last_string == 'new') {
+        this.page_type = 'new';
+        this.init_page_for_new_case();
+      }
+      else {
+        this.init_page_for_case(parseInt(last_string, 10));
       }
 
-      var this_vm = this;
       this.load_patient_option();
       this.load_template_option();
-      this.load_case().then(function () {
-        this_vm.case_obj_old = _.clone(this_vm.case_obj);
-      });
     },
     data: {
       case_obj: {},
@@ -82,33 +78,53 @@
     computed: {
       modal_id : function() {
         return "#" + this.modal_info.id;
+      },
+      for_new: function() {
+        return this.page_type == 'new';
       }
     },
     methods: {
+      init_page_for_case: function(case_id) {
+        this.nav_items = [['home'], ['search'], ['case_detail', {'id': case_id}]];
+
+        if (new URLSearchParams(window.location.search).get('save')) {
+          this.alert_list.push({content: "新建成功！", status: "success"});
+          setTimeout(function(){ this_vm.alert_list.shift(); }, 3000);
+        }
+
+        var this_vm = this;
+        this.load_case(case_id).then(function () {
+          this_vm.case_obj_old = _.clone(this_vm.case_obj);
+        });
+      },
+      init_page_for_new_case: function() {
+        this.nav_items = [['home'], ['search'], ['case_new']];
+      },
       chinese_compare: function(var1, var2) {
         return var1.name.localeCompare(var2.name, "zh-CN");
       },
       load_patient_option: function() {
         var this_vm = this;
-        this.get_patient_option().then(function (response) {
-          this_vm.patient_option = response.data.list.sort(this_vm.chinese_compare);;
+        this.get_patient_option().then(function ({data}) {
+          this_vm.patient_option = data.list.sort(this_vm.chinese_compare);;
         }).catch(function (error) {
           console.log(error);
         });
       },
       load_template_option: function() {
         var this_vm = this;
-        this.get_template_option().then(function (response) {
-          this_vm.template_option = response.data.list.sort(this_vm.chinese_compare);;
+        this.get_template_option().then(function ({data}) {
+          data.list.push({id: null, name: '无'});
+          this_vm.template_option = data.list.sort(this_vm.chinese_compare);
         }).catch(function (error) {
           console.log(error);
         });
       },
-      load_case: function() {
+      load_case: function(case_id) {
         var this_vm = this;
-        return this.get_case_by_id(this.case_id)
-          .then(function (response) {
-            this_vm.case_obj = response.data;
+        return this.get_case_by_id(case_id)
+          .then(function ({data}) {
+            this_vm.case_obj = data;
           });
       },
       submit: function() {
@@ -117,11 +133,16 @@
       confirm: function() {
         var this_vm = this;
         this.post_case(this.case_obj)
-          .then(function (response) {
-            if (response.data.success) {
-              $(this_vm.modal_id).modal('hide');
-              this_vm.alert_list.push({content: "修改成功！", status: "success"});
-              setTimeout(function(){ this_vm.alert_list.shift() }, 3000);
+          .then(function ({data}) {
+            if (data.success) {
+              if (this_vm.for_new) {
+                window.location.href = this_vm.route_obj_by_alias('case_detail', {id: data.data.id, save: true}).url;
+              }
+              else {
+                $(this_vm.modal_id).modal('hide');
+                this_vm.alert_list.push({content: "修改成功！", status: "success"});
+                setTimeout(function(){ this_vm.alert_list.shift() }, 3000);
+              }
             }
           }).catch(function (error) {
             console.log(error);

@@ -17,7 +17,7 @@ Vue.component('template-info-template', {
         <tr>
           <td></td>
           <td>修改前：</td>
-          <td>修改前：</td>
+          <td>修改后：</td>
         </tr>
         <tr>
           <td>名称:</td>

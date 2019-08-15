@@ -25,7 +25,7 @@ def case_detail(request, case_id):
 
 
 def case_new(request):
-    return render(request, 'ui/case_new.html')
+    return render(request, 'ui/case.html')
 
 
 def template_detail(request, template_id):

@@ -111,7 +111,6 @@
         this.post_template(this.template_obj)
           .then(function ({data}) {
             if (data.success) {
-              console.log(this_vm.for_new)
               if (this_vm.for_new) {
                 window.location.href = this_vm.route_obj_by_alias('template_detail', {id: data.data.id, save: true}).url;
               }
