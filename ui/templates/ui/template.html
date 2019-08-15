@@ -5,7 +5,7 @@
 <div id="app_template">
   <navbar-template></navbar-template>
   <breadcrumb-template :nav_items="nav_items"></breadcrumb-template>
-  <div class="container" style="position: relative;">
+  <div class="container">
     <div class="alert-container">
       <transition-group name="list" tag="div">
         <alert-template v-for="alert in alert_list" :key="alert.content" :status="alert.status">[% alert.content %]</alert-template>
@@ -23,12 +23,8 @@
   </div>
   <br v-for="i in 2"/>
   <modal-template :info="modal_info" :confirm="confirm">
-    <div v-if="for_new" class="row">
-      <template-info-template :template_info="[template_obj]"></template-info-template>
-    </div>
-    <div v-else class="row">
-      <template-info-template :template_info="[template_obj_old, template_obj]"></template-info-template>
-    </div>
+    <template-info-template v-if="for_new" :template_info="[template_obj]"></template-info-template>
+    <template-info-template v-else :template_info="[template_obj_old, template_obj]" class="justify-content-center"></template-info-template>
   </modal-template>
 </div>
 {% endblock %}
@@ -68,7 +64,7 @@
         return {
           id: 'diffModal',
           title: this.for_new ? '确认新建吗？' : '确认更改吗？',
-          size: this.for_new ? null : 'lg'
+          size: this.for_new ? null : 'xl'
         }
       },
       modal_id: function() {

@@ -5,14 +5,19 @@
 <div id="app_patient">
   <navbar-template></navbar-template>
   <breadcrumb-template :nav_items="nav_items"></breadcrumb-template>
-  <div class="container" style="position: relative;">
+  <div class="container">
     <div class="alert-container">
       <transition-group name="list" tag="div">
         <alert-template v-for="alert in alert_list" :key="alert.content" :status="alert.status">[% alert.content %]</alert-template>
       </transition-group>
     </div>
     <div class="row justify-content-center">
-      <div class="col-8">
+      <div v-if="for_new" class="col-8">
+        <h3>新建访客</h3>
+        <patient-form-template :patient_obj="patient_obj"></patient-form-template>
+        <button type="button" class="btn btn-primary" v-on:click="submit">新建访客</button>
+      </div>
+      <div v-else class="col-8">
         <h3>访客详情</h3>
         <patient-form-template :patient_obj="patient_obj"></patient-form-template>
         <button type="button" class="btn btn-primary" v-on:click="submit">更改访客</button>
@@ -25,16 +30,8 @@
   </div>
   <br v-for="i in 2"/>
   <modal-template :info="modal_info" :confirm="confirm">
-    <div class="row">
-      <div class="col-6">修改前：</div>
-      <div class="col-6">修改后：</div>
-      <div class="col-6 border-top border-right">
-        <patient-info-template :patient_info="patient_obj_old"></patient-info-template>
-      </div>
-      <div class="col-6 border-top border-left">
-        <patient-info-template :patient_info="patient_obj"></patient-info-template>
-      </div>
-    </div>
+    <patient-info-template v-if="for_new" :patient_info="[patient_obj]"></patient-info-template>
+    <patient-info-template v-else :patient_info="[patient_obj_old, patient_obj]" class="justify-content-center"></patient-info-template>
   </modal-template>
 </div>
 {% endblock %}
@@ -51,49 +48,69 @@
 <script src="{% static 'ui/components/PaginationTemplate.js' %}"></script>
 
 <script>
-  new Vue({
+  vv = new Vue({
     delimiters: ['[%', '%]'],
     el: '#app_patient',
     created: function() {
       var current_url = window.location.pathname;
-      this.patient_id = parseInt(current_url.substring(current_url.lastIndexOf('/') + 1), 10);
-      this.nav_items = [['home'], ['search'], ['patient_detail', {'id': this.patient_id}]];
-      this.btn_new_param.patient = this.patient_id;
+      var last_string = current_url.substring(current_url.lastIndexOf('/') + 1);
 
-      if (new URLSearchParams(window.location.search).get('save')) {
-        this.alert_list.push({content: "新建成功！", status: "success"});
-        setTimeout(function(){ this_vm.alert_list.shift(); }, 3000);
+      if (last_string == 'new') {
+        this.page_type = 'new';
+        this.init_page_for_new_patient();
       }
-
-      var this_vm = this;
-      this.load_patient()
-        .then(function () {
-          this_vm.patient_obj_old = _.clone(this_vm.patient_obj);
-        });
-      this.load_case_page(1);
+      else {
+        this.patient_id = parseInt(last_string, 10);
+        this.init_page_for_patient(this.patient_id);
+      }
     },
     data: {
       patient_obj: {},
       patient_obj_old: {},
       case_list: [],
       page_info: {},
-      alert_list: [],
-      btn_new_param: {},
-      modal_info: {
-        id: 'diffModal',
-        title: '确认更改吗？',
-        size: 'lg'
-      }
+      alert_list: []
     },
     computed: {
-      modal_id : function() {
+      modal_info: function() {
+        return {
+          id: 'diffModal',
+          title: this.for_new ? '确认新建吗？' : '确认更改吗？',
+          size: this.for_new ? null : 'xl'
+        }
+      },
+      modal_id: function() {
         return "#" + this.modal_info.id;
+      },
+      for_new: function() {
+        return this.page_type == 'new';
+      },
+      btn_new_param: function() {
+        return {patient: this.patient_id};
       }
     },
     methods: {
-      load_patient: function() {
+      init_page_for_patient: function(patient_id) {
+        this.nav_items = [['home'], ['search'], ['patient_detail', {'id': patient_id}]];
+
+        if (new URLSearchParams(window.location.search).get('save')) {
+          this.alert_list.push({content: "新建成功！", status: "success"});
+          setTimeout(function(){ this_vm.alert_list.shift(); }, 3000);
+        }
+
         var this_vm = this;
-        return this.get_patient_by_id(this.patient_id, {recent_field: true})
+        this.load_patient(patient_id)
+          .then(function () {
+            this_vm.patient_obj_old = _.clone(this_vm.patient_obj);
+          });
+        this.load_case_page(1);
+      },
+      init_page_for_new_patient: function() {
+        this.nav_items = [['home'], ['search'], ['patient_new']];
+      },
+      load_patient: function(patient_id) {
+        var this_vm = this;
+        return this.get_patient_by_id(patient_id, {recent_field: true})
           .then(function (response) {
             this_vm.patient_obj = response.data;
           });

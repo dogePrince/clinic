@@ -22,16 +22,10 @@
     </div>
     <br v-for="i in 2"/>
     <modal-template :info="modal_info" :confirm="confirm">
-      <div v-if="for_new" class="row">
-        <case-info-template :case_info="[case_obj]" :patient_option="patient_option" :template_option="template_option"></case-info-template>
-      </div>
-      <div v-else class="row">
-        <case-info-template :case_info="[case_obj_old, case_obj]" :patient_option="patient_option" :template_option="template_option"></case-info-template>
-      </div>
+      <case-info-template v-if="for_new" :case_info="[case_obj]" :patient_option="patient_option" :template_option="template_option"></case-info-template>
+      <case-info-template v-else :case_info="[case_obj_old, case_obj]" :patient_option="patient_option" :template_option="template_option" class="justify-content-center"></case-info-template>
     </modal-template>
   </div>
-
-
 </div>
 {% endblock %}
 
@@ -67,15 +61,17 @@
       case_obj: {},
       case_obj_old: {},
       alert_list: [],
-      modal_info: {
-        id: 'diffModal',
-        title: '确认更改吗？',
-        size: 'xl'
-      },
       patient_option: [],
       template_option: []
     },
     computed: {
+      modal_info: function() {
+        return {
+          id: 'diffModal',
+          title: this.for_new ? '确认新建吗？' : '确认更改吗？',
+          size: this.for_new ? null : 'xl'
+        }
+      },
       modal_id : function() {
         return "#" + this.modal_info.id;
       },

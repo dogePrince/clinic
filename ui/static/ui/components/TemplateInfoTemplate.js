@@ -15,17 +15,17 @@ Vue.component('template-info-template', {
       </table>
       <table v-else class="table table-bordered">
         <tr>
-          <td></td>
-          <td>修改前：</td>
-          <td>修改后：</td>
+          <th scope="col"></th>
+          <th scope="col">修改前：</th>
+          <th scope="col">修改后：</th>
         </tr>
         <tr>
-          <td>名称:</td>
+          <th scope="row">名称:</th>
           <td>[% template_info[0].name %]</td>
           <td>[% template_info[1].name %]</td>
         </tr>
         <tr>
-          <td>配方:</td>
+          <th scope="row">配方:</th>
           <td>[% template_info[0].prescription %]</td>
           <td>[% template_info[1].prescription %]</td>
         </tr>

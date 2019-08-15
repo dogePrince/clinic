@@ -17,7 +17,7 @@ def patient_detail(request, patient_id):
 
 
 def patient_new(request):
-    return render(request, 'ui/patient_new.html')
+    return render(request, 'ui/patient.html')
 
 
 def case_detail(request, case_id):
