@@ -85,6 +85,9 @@
       }
     },
     methods: {
+      chinese_compare: function(var1, var2) {
+        return var1.name.localeCompare(var2.name, "zh-CN");
+      },
       load_patient_option: function() {
         var this_vm = this;
         this.get_patient_option().then(function (response) {

@@ -20,6 +20,7 @@ urlpatterns = [
     path('case/new', views.case_new, name='case_new'),
 
     path('template/<int:template_id>', views.template_detail, name='template_detail'),
+    path('template/new', views.template_new, name='template_new'),
 
     # case queue
     # path('case_queue', views.case, name='case_queue'),

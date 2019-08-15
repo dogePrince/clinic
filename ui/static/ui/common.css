@@ -4,6 +4,9 @@ body {
 table caption.caption-top {
   caption-side: top;
 }
+.td-padding-table td {
+  padding: 10px;
+}
 textarea {
   display: block;
   height: auto;

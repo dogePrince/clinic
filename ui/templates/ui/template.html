@@ -13,23 +13,21 @@
     </div>
     <div class="row justify-content-center">
       <div class="col-8">
-        <h3>模板详情</h3>
+        <h3 v-if="for_new">新建模板</h3>
+        <h3 v-else>模板详情</h3>
         <template-form-template :template_obj="template_obj"></template-form-template>
-        <button type="button" class="btn btn-primary" v-on:click="submit">更改模板</button>
+        <button v-if="for_new" type="button" class="btn btn-primary" v-on:click="submit">新建模板</button>
+        <button v-else type="button" class="btn btn-primary" v-on:click="submit">更改模板</button>
       </div>
     </div>
   </div>
   <br v-for="i in 2"/>
   <modal-template :info="modal_info" :confirm="confirm">
-    <div class="row">
-      <div class="col-6">修改前：</div>
-      <div class="col-6">修改后：</div>
-      <div class="col-6 border-top border-right">
-        <template-info-template :template_info="template_obj_old"></template-info-template>
-      </div>
-      <div class="col-6 border-top border-left">
-        <template-info-template :template_info="template_obj"></template-info-template>
-      </div>
+    <div v-if="for_new" class="row">
+      <template-info-template :template_info="[template_obj]"></template-info-template>
+    </div>
+    <div v-else class="row">
+      <template-info-template :template_info="[template_obj_old, template_obj]"></template-info-template>
     </div>
   </modal-template>
 </div>
@@ -50,41 +48,59 @@
     el: '#app_template',
     created: function() {
       var current_url = window.location.pathname;
-      this.template_id = parseInt(current_url.substring(current_url.lastIndexOf('/') + 1), 10);
-      this.nav_items = [['home'], ['search'], ['template_detail', {'id': this.template_id}]];
+      var last_string = current_url.substring(current_url.lastIndexOf('/') + 1);
 
-      if (new URLSearchParams(window.location.search).get('save')) {
-        this.alert_list.push({content: "新建成功！", status: "success"});
-        setTimeout(function(){ this_vm.alert_list.shift(); }, 3000);
+      if (last_string == 'new') {
+        this.page_type = 'new';
+        this.init_page_for_new_template();
       }
-
-      var this_vm = this;
-      this.load_template()
-        .then(function () {
-          this_vm.template_obj_old = _.clone(this_vm.template_obj);
-        });
+      else {
+        this.init_page_for_template(parseInt(last_string, 10));
+      }
     },
     data: {
       template_obj: {},
       template_obj_old: {},
-      alert_list: [],
-      modal_info: {
-        id: 'diffModal',
-        title: '确认更改吗？',
-        size: 'lg'
-      }
+      alert_list: []
     },
     computed: {
-      modal_id : function() {
+      modal_info: function() {
+        return {
+          id: 'diffModal',
+          title: this.for_new ? '确认新建吗？' : '确认更改吗？',
+          size: this.for_new ? null : 'lg'
+        }
+      },
+      modal_id: function() {
         return "#" + this.modal_info.id;
+      },
+      for_new: function() {
+        return this.page_type == 'new';
       }
     },
     methods: {
-      load_template: function() {
+      init_page_for_template: function(template_id) {
+        this.nav_items = [['home'], ['search'], ['template_detail', {'id': template_id}]];
+
+        if (new URLSearchParams(window.location.search).get('save')) {
+          this.alert_list.push({content: "新建成功！", status: "success"});
+          setTimeout(function(){ this_vm.alert_list.shift(); }, 3000);
+        }
+
         var this_vm = this;
-        return this.get_template_by_id(this.template_id)
-          .then(function (response) {
-            this_vm.template_obj = response.data;
+        this.load_template(template_id)
+          .then(function () {
+            this_vm.template_obj_old = _.clone(this_vm.template_obj);
+          });
+      },
+      init_page_for_new_template: function() {
+        this.nav_items = [['home'], ['search'], ['template_new']];
+      },
+      load_template: function(template_id) {
+        var this_vm = this;
+        return this.get_template_by_id(template_id)
+          .then(function ({data}) {
+            this_vm.template_obj = data;
           });
       },
       submit: function() {
@@ -93,11 +109,17 @@
       confirm: function() {
         var this_vm = this;
         this.post_template(this.template_obj)
-          .then(function (response) {
-            if (response.data.success) {
-              $(this_vm.modal_id).modal('hide');
-              this_vm.alert_list.push({content: "修改成功！", status: "success"});
-              setTimeout(function(){ this_vm.alert_list.shift() }, 3000);
+          .then(function ({data}) {
+            if (data.success) {
+              console.log(this_vm.for_new)
+              if (this_vm.for_new) {
+                window.location.href = this_vm.route_obj_by_alias('template_detail', {id: data.data.id, save: true}).url;
+              }
+              else {
+                $(this_vm.modal_id).modal('hide');
+                this_vm.alert_list.push({content: "修改成功！", status: "success"});
+                setTimeout(function(){ this_vm.alert_list.shift() }, 3000);
+              }
             }
           }).catch(function (error) {
             console.log(error);
