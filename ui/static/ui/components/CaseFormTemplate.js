@@ -40,7 +40,6 @@ Vue.component('case-form-template', {
         <div class="form-group col-md-6">
           <label>方剂</label>
           <select id="template_select" class="select form-control" type="text" v-model="case_obj.template" @change="load_template">
-            <option value="">无</option>
             <option v-for="(option, key) in template_option" :value="option.id">[%option.name%]</option>
           </select>
         </div>

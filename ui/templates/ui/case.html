@@ -12,12 +12,18 @@
       </transition-group>
     </div>
     <div class="row justify-content-center">
-      <div class="col-8">
-        <h3 v-if="for_new">新建病例</h3>
-        <h3 v-else>病例详情</h3>
+      <div v-if="for_new" class="col-8">
+        <h3>新建病例</h3>
         <case-form-template :case_obj="case_obj" :patient_option="patient_option" :template_option="template_option"></case-form-template>
-        <button v-if="for_new" type="button" class="btn btn-primary" v-on:click="submit">新建访客</button>
-        <button v-else type="button" class="btn btn-primary" v-on:click="submit">更改访客</button>
+        <button type="button" class="btn btn-primary" v-on:click="submit">新建病例</button>
+      </div>
+      <div v-else class="col-8">
+        <h3>病例详情
+          <span class="float-right"><a class="btn btn-outline-primary btn-sm" :href="new_case_from_this">从此病例新建 <span class="oi oi-file"></span></a></span>
+        </h3>
+        <case-form-template :case_obj="case_obj" :patient_option="patient_option" :template_option="template_option"></case-form-template>
+        <button type="button" class="btn btn-primary" v-on:click="submit">更改病例</button>
+        <button type="button" class="btn btn-danger" v-on:click="submit">删除病例</button>
       </div>
     </div>
     <br v-for="i in 2"/>
@@ -51,14 +57,15 @@
         this.init_page_for_new_case();
       }
       else {
-        this.init_page_for_case(parseInt(last_string, 10));
+        this.case_id = parseInt(last_string, 10);
+        this.init_page_for_case(this.case_id);
       }
 
       this.load_patient_option();
       this.load_template_option();
     },
     data: {
-      case_obj: {},
+      case_obj: {patient:null, template: null, prescription: ''},
       case_obj_old: {},
       alert_list: [],
       patient_option: [],
@@ -72,17 +79,30 @@
           size: this.for_new ? null : 'xl'
         }
       },
-      modal_id : function() {
+      modal_id: function() {
         return "#" + this.modal_info.id;
       },
       for_new: function() {
         return this.page_type == 'new';
+      },
+      new_case_from_this: function() {
+        return this.route_obj_by_alias('case_new', { case: this.case_id }).url;
+      },
+      nav_items: function() {
+        if (this.for_new) {
+          if (this.case_obj.patient) {
+            return this.nav_items = [['home'], ['search'], ['patient_detail', {'id': this.case_obj.patient}], ['case_new']];
+          }
+          return [['home'], ['search'], ['case_new']];
+        }
+        if (this.case_obj.patient) {
+          return this.nav_items = [['home'], ['search'], ['patient_detail', {'id': this.case_obj.patient}], ['case_detail', {'id': this.case_id}]];
+        }
+        return this.nav_items = [['home'], ['search'], ['case_detail', {'id': this.case_id}]];
       }
     },
     methods: {
       init_page_for_case: function(case_id) {
-        this.nav_items = [['home'], ['search'], ['case_detail', {'id': case_id}]];
-
         if (new URLSearchParams(window.location.search).get('save')) {
           this.alert_list.push({content: "新建成功！", status: "success"});
           setTimeout(function(){ this_vm.alert_list.shift(); }, 3000);
@@ -104,14 +124,13 @@
 
         if (patient_id) {
           setTimeout(function() {
-            this_vm.case_obj = {patient: patient_id, template: null};
+            this_vm.case_obj = {patient: patient_id, template: null, prescription: ''};
           }, 1);
         }else if(case_id) {
           this.load_case(case_id).then(function() {
             this_vm.case_obj.id = null;
           });
         }
-        this.nav_items = [['home'], ['search'], ['case_new']];
       },
       chinese_compare: function(var1, var2) {
         return var1.name.localeCompare(var2.name, "zh-CN");
@@ -127,8 +146,9 @@
       load_template_option: function() {
         var this_vm = this;
         this.get_template_option().then(function ({data}) {
-          data.list.push({id: null, name: '无'});
-          this_vm.template_option = data.list.sort(this_vm.chinese_compare);
+          var sorted_list = data.list.sort(this_vm.chinese_compare);
+          sorted_list.unshift({id: null, name: '无'});
+          this_vm.template_option = sorted_list;
         }).catch(function (error) {
           console.log(error);
         });
