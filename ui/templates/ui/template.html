@@ -5,26 +5,33 @@
 <div id="app_template">
   <navbar-template></navbar-template>
   <breadcrumb-template :nav_items="nav_items"></breadcrumb-template>
-  <div class="container">
+  <div class="container" style="position: relative;">
     <div class="alert-container">
       <transition-group name="list" tag="div">
         <alert-template v-for="alert in alert_list" :key="alert.content" :status="alert.status">[% alert.content %]</alert-template>
       </transition-group>
     </div>
     <div class="row justify-content-center">
-      <div class="col-8">
-        <h3 v-if="for_new">新建模板</h3>
-        <h3 v-else>模板详情</h3>
+      <div v-if="for_new" class="col-8">
+        <h3>新建模板</h3>
         <template-form-template :template_obj="template_obj"></template-form-template>
-        <button v-if="for_new" type="button" class="btn btn-primary" v-on:click="submit">新建模板</button>
-        <button v-else type="button" class="btn btn-primary" v-on:click="submit">更改模板</button>
+        <button type="button" class="btn btn-primary" v-on:click="submit">新建模板</button>
+      </div>
+      <div v-else class="col-8">
+        <h3>模板详情</h3>
+        <template-form-template :template_obj="template_obj"></template-form-template>
+        <button type="button" class="btn btn-primary" v-on:click="submit">更改模板</button>
+        <button type="button" class="btn btn-danger" v-on:click="delete_obj">删除模板</button>
       </div>
     </div>
   </div>
   <br v-for="i in 2"/>
-  <modal-template :info="modal_info" :confirm="confirm">
+  <modal-template :info="diff_modal_info" :confirm="submit_confirm">
     <template-info-template v-if="for_new" :template_info="[template_obj]"></template-info-template>
     <template-info-template v-else :template_info="[template_obj_old, template_obj]" class="justify-content-center"></template-info-template>
+  </modal-template>
+  <modal-template v-if="!for_new" :info="delete_modal_info" :confirm="delete_confirm">
+    <template-info-template :template_info="[template_obj]"></template-info-template>
   </modal-template>
 </div>
 {% endblock %}
@@ -60,15 +67,33 @@
       alert_list: []
     },
     computed: {
-      modal_info: function() {
+      diff_modal_info: function() {
         return {
           id: 'diffModal',
           title: this.for_new ? '确认新建吗？' : '确认更改吗？',
-          size: this.for_new ? null : 'xl'
+          size: this.for_new ? null : 'xl',
+          submit_btn: {
+            name: this.for_new ? '新建模板' : '保存更改',
+            type: 'primary'
+          }
         }
       },
-      modal_id: function() {
-        return "#" + this.modal_info.id;
+      delete_modal_info: function() {
+        return {
+          id: 'deleteModal',
+          title: '确认删除吗？',
+          size: 'lg',
+          submit_btn: {
+            name: '删除模板',
+            type: 'danger'
+          }
+        }
+      },
+      diff_modal_id: function() {
+        return "#" + this.diff_modal_info.id;
+      },
+      delete_modal_id: function() {
+        return "#" + this.delete_modal_info.id;
       },
       for_new: function() {
         return this.page_type == 'new';
@@ -100,9 +125,9 @@
           });
       },
       submit: function() {
-        $(this.modal_id).modal('show');
+        $(this.diff_modal_id).modal('show');
       },
-      confirm: function() {
+      submit_confirm: function() {
         var this_vm = this;
         this.post_template(this.template_obj)
           .then(function ({data}) {
@@ -115,6 +140,20 @@
                 this_vm.alert_list.push({content: "修改成功！", status: "success"});
                 setTimeout(function(){ this_vm.alert_list.shift() }, 3000);
               }
+            }
+          }).catch(function (error) {
+            console.log(error);
+          });
+      },
+      delete_obj: function() {
+        $(this.delete_modal_id).modal('show');
+      },
+      delete_confirm: function() {
+        var this_vm = this;
+        this.delete_template_by_id(this.template_obj.id)
+          .then(function ({data}) {
+            if (data.success) {
+              window.location.href = this_vm.route_obj_by_alias('search', {delete: true, focus: 'template'}).url;
             }
           }).catch(function (error) {
             console.log(error);

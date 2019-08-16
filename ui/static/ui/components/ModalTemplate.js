@@ -16,7 +16,7 @@ Vue.component('modal-template', {
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-          <button type="button" class="btn btn-primary" v-on:click="confirm">保存更改</button>
+          <button type="button" class="btn" :class="submit_btn_class" v-on:click="confirm">[% info.submit_btn.name %]</button>
         </div>
       </div>
     </div>
@@ -29,5 +29,10 @@ Vue.component('modal-template', {
         "lg": "modal-lg"
       }
     };
+  },
+  computed: {
+    submit_btn_class: function() {
+      return 'btn-' + this.info.submit_btn.type;
+    }
   }
 });

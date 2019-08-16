@@ -5,7 +5,7 @@
 <div id="app_patient">
   <navbar-template></navbar-template>
   <breadcrumb-template :nav_items="nav_items"></breadcrumb-template>
-  <div class="container">
+  <div class="container" style="position: relative;">
     <div class="alert-container">
       <transition-group name="list" tag="div">
         <alert-template v-for="alert in alert_list" :key="alert.content" :status="alert.status">[% alert.content %]</alert-template>
@@ -23,13 +23,16 @@
         </h3>
         <case-form-template :case_obj="case_obj" :patient_option="patient_option" :template_option="template_option"></case-form-template>
         <button type="button" class="btn btn-primary" v-on:click="submit">更改病例</button>
-        <button type="button" class="btn btn-danger" v-on:click="submit">删除病例</button>
+        <button type="button" class="btn btn-danger" v-on:click="delete_obj">删除病例</button>
       </div>
     </div>
     <br v-for="i in 2"/>
-    <modal-template :info="modal_info" :confirm="confirm">
+    <modal-template :info="diff_modal_info" :confirm="submit_confirm">
       <case-info-template v-if="for_new" :case_info="[case_obj]" :patient_option="patient_option" :template_option="template_option"></case-info-template>
       <case-info-template v-else :case_info="[case_obj_old, case_obj]" :patient_option="patient_option" :template_option="template_option" class="justify-content-center"></case-info-template>
+    </modal-template>
+    <modal-template v-if="!for_new" :info="delete_modal_info" :confirm="delete_confirm">
+      <case-info-template :case_info="[case_obj]" :patient_option="patient_option" :template_option="template_option" class="justify-content-center"></case-info-template>
     </modal-template>
   </div>
 </div>
@@ -72,15 +75,33 @@
       template_option: []
     },
     computed: {
-      modal_info: function() {
+      diff_modal_info: function() {
         return {
           id: 'diffModal',
           title: this.for_new ? '确认新建吗？' : '确认更改吗？',
-          size: this.for_new ? null : 'xl'
+          size: this.for_new ? null : 'xl',
+          submit_btn: {
+            name: this.for_new ? '保存更改' : '新建病例',
+            type: 'primary'
+          }
         }
       },
-      modal_id: function() {
-        return "#" + this.modal_info.id;
+      delete_modal_info: function() {
+        return {
+          id: 'deleteModal',
+          title: '确认删除吗？',
+          size: 'lg',
+          submit_btn: {
+            name: '删除病例',
+            type: 'danger'
+          }
+        }
+      },
+      diff_modal_id: function() {
+        return "#" + this.diff_modal_info.id;
+      },
+      delete_modal_id: function() {
+        return "#" + this.delete_modal_info.id;
       },
       for_new: function() {
         return this.page_type == 'new';
@@ -161,9 +182,9 @@
           });
       },
       submit: function() {
-        $(this.modal_id).modal('show');
+        $(this.diff_modal_id).modal('show');
       },
-      confirm: function() {
+      submit_confirm: function() {
         var this_vm = this;
         this.post_case(this.case_obj)
           .then(function ({data}) {
@@ -172,10 +193,24 @@
                 window.location.href = this_vm.route_obj_by_alias('case_detail', {id: data.data.id, save: true}).url;
               }
               else {
-                $(this_vm.modal_id).modal('hide');
+                $(this_vm.diff_modal_id).modal('hide');
                 this_vm.alert_list.push({content: "修改成功！", status: "success"});
                 setTimeout(function(){ this_vm.alert_list.shift() }, 3000);
               }
+            }
+          }).catch(function (error) {
+            console.log(error);
+          });
+      },
+      delete_obj: function() {
+        $(this.delete_modal_id).modal('show');
+      },
+      delete_confirm: function() {
+        var this_vm = this;
+        this.delete_case_by_id(this.case_obj.id)
+          .then(function ({data}) {
+            if (data.success) {
+              window.location.href = this_vm.route_obj_by_alias('patient_detail', {id: data.data.patient, delete: true}).url;
             }
           }).catch(function (error) {
             console.log(error);

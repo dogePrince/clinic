@@ -157,6 +157,13 @@ Vue.mixin({
         phone_number: form.phone_number
       })
     },
+    delete_patient_by_id: function(id) {
+      return this.axios_instance.get(`/patient/delete`, {
+        params: {
+          id: id
+        }
+      });
+    },
     get_case: function({ page=null, patient_field=null, patient_id=null } = {}) {
       return this.axios_instance.get('/case', {
           params: {
@@ -183,6 +190,13 @@ Vue.mixin({
         prescription: form.prescription
       })
     },
+    delete_case_by_id: function(id) {
+      return this.axios_instance.get(`/case/delete`, {
+        params: {
+          id: id
+        }
+      });
+    },
     get_template: function(page) {
       return this.axios_instance.get('/template', {
           params: {
@@ -206,6 +220,13 @@ Vue.mixin({
         name: form.name,
         prescription: form.prescription
       })
+    },
+    delete_template_by_id: function(id) {
+      return this.axios_instance.get(`/template/delete`, {
+        params: {
+          id: id
+        }
+      });
     }
   }
 });

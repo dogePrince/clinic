@@ -2,16 +2,13 @@ Vue.component('alert-template', {
   delimiters: ['[%', '%]'],
   props: ['status'],
   template: `
-  <div class="alert" :class="status_dict[status]" role="alert">
+  <div class="alert" :class="status_class" role="alert">
     <slot></slot>
   </div>
   `,
-  data: function() {
-    return {
-      status_dict: {
-        "success": 'alert-success',
-        "failed": 'alert-danger'
-      }
-    };
+  computed: {
+    status_class: function() {
+      return 'alert-' + this.status;
+    }
   }
 });
