@@ -1,0 +1,17 @@
+{
+  "name": "frontend",
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "open-iconic": "^1.1.1"
+  }
+}
