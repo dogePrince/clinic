@@ -17,10 +17,6 @@
         <td>电话:</td>
         <td>{{ info[0].phone_number }}</td>
       </tr>
-      <tr>
-        <td>注册时间:</td>
-        <td>{{ info[0].register_date | date_to_string }}</td>
-      </tr>
     </table>
     <table v-else class="table table-bordered">
       <tr>

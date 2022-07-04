@@ -68,7 +68,6 @@ export default {
         pub_date: form.pub_date.toJSON(),
         symptom: form.symptom,
         template: form.template,
-        dose_num: form.dose_num,
         prescription: form.prescription
       })
     },
@@ -100,7 +99,6 @@ export default {
       return this.axios_instance.post('/template/save', {
         id: form.id,
         name: form.name,
-        prescription: form.prescription
       })
     },
     delete_template_by_id: function(id) {

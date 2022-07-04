@@ -28,12 +28,12 @@
           </b-form-group>
         </div>
 
-        <div class="col-6">
+        <div v-if="data.recent" class="col-6">
           <b-form-group id="patient-register-date-group" label="注册时间" label-for="patient_register_date">
             <date-picker v-model="data.register_date" type="datetime" format="YYYY-MM-DD HH:mm:ss" id="patient_register_date"></date-picker>
           </b-form-group>
         </div>
-
+        
         <div v-if="data.recent" class="col-6">
           <b-form-group id="recent-date-group" label="最近来访" label-for="patient_recent_date">
             <date-picker v-model="data.recent.pub_date" type="datetime" format="YYYY-MM-DD HH:mm:ss" id="patient_register_date" disabled></date-picker>
@@ -52,16 +52,17 @@ export default {
   components: {DatePicker},
   computed: {
     name_valid: function() {
-      return this.data.name ? true : false && this.data.name.length > 0;
+      return (this.data.name ? true : false && this.data.name.length > 0) ? null : false;
     },
     sex_valid: function() {
-      return this.sexes[this.data.sex] ? true : false;
+      return this.sexes[this.data.sex] ? null : false;
     },
     age_valid: function() {
-      return Number.isInteger(parseInt(this.data.age));
+      return (Number.isInteger(parseInt(this.data.age))) ? null : false;
     },
     phone_num_valid: function() {
-      return this.data.phone_number ? true : false && this.data.phone_number.length > 0;
+      return null;
+      // return this.data.phone_number ? true : false && this.data.phone_number.length > 0;
     }
   }
 }

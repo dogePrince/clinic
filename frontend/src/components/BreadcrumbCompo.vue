@@ -15,7 +15,7 @@ export default {
         'statistic': {name: '统计', weight: 2},
         'patient': {name: '访客', weight: 3},
         'case': {name: '病例', weight: 4},
-        'template': {name: '模板', weight: 5}
+        'template': {name: '处方管理', weight: 5}
       }
     };
   },
@@ -29,7 +29,7 @@ export default {
   },
   methods: {
     push_url: function(route) {
-      const extra_enhance_url = ['patient', 'case', 'template'];
+      const extra_enhance_url = ['patient', 'case'];
 
       while (this.should_pop(route)) {
         this.route_list.pop();

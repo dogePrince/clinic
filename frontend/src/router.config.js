@@ -12,7 +12,7 @@ export default{
     {path: '/statistic', name:'statistic', component: Statistic},
     {path: '/patient/:id', name:'patient', component: Patient, props: true},
     {path: '/case/:id', name:'case', component: Case, props: true},
-    {path: '/template/:id', name:'template', component: Template, props: true},
+    {path: '/template', name:'template', component: Template},
     {path: '*', redirect: '/'},
   ]
 }

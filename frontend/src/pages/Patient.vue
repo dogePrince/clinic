@@ -127,13 +127,13 @@ export default {
           }
           this_vm.data = data;
           this_vm.old_data = _.clone(data);
-        }).catch(function (error) {
+        }).catch(function () {
           Alerts.push('该页面不存在!', 'danger');
           this_vm.$router.back();
         });
       }
     },
-    load_case_page: function(page) {
+    load_case_page: function() {
       var this_vm = this;
       this.get_case({page: this.page ? this.page : 1, patient_field: true, patient_id: this.id})
         .then(function ({data}) {

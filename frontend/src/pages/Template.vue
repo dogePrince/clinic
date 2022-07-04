@@ -1,69 +1,74 @@
 <template>
-  <div class="col-8">
-    <h2 v-if="for_new">新建模板</h2>
-    <h2 v-else>模板详情</h2>
-    <template-form :data="data"></template-form>
+  <div class="col-12">
+    <div class="row justify-content-center">
+      <div class="col-8">
+        <h2>处方管理</h2>
 
-    <div class="row">
-      <div v-if="for_new" class="col-12">
-        <b-button variant="primary" @click="save_template">新建模板</b-button>
+        <div class="row">
+          <div class="col-4">
+            <b-input v-model="data.name" id="template-name" placeholder="输入处方名" ref="inputVal" @keyup.enter.native="save_template" autofocus></b-input>
+          </div>
+          <div class="col-6">
+            <b-button variant="primary" @click="save_template">添加</b-button>
+          </div>
+        </div>
       </div>
-      <div v-else class="col-12">
-        <b-button variant="primary" @click="save_template" class="mr-2">更改模板</b-button>
-        <b-button variant="danger" @click="delete_template">删除模板</b-button>
+
+      <div class="col-8">
+        <div class="row">
+          <div class="col-12">
+            <b-button variant="primary-outline" class="float-right">
+              <img src="../image/setting2.svg" @click="show_delete" width="30" height="30" alt="管理">
+            </b-button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="text-center col-3 border" v-for="(template,index) in template_list" :key="template.id">
+            <div class="row justify-content-center">
+              <div class="col-8 text-center">
+                {{template.name}}
+              </div>
+              <div class="col-4 text-right" v-if="delete_visible">
+                <b-link @click="delte_template(index)">删除</b-link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <modal-compo :id="modal_id" :info="modal_info">
-      <template-info :info="modal_content"></template-info>
+    <modal-compo :id="modal_id" :info="delete_modal_info">
+      删除“{{template_info}}”
     </modal-compo>
   </div>
 </template>
 
 <script>
-import TemplateForm from "../components/TemplateForm.vue";
 import ModalCompo from "../components/ModalCompo.vue";
-import TemplateInfo from "../components/TemplateInfo.vue";
 import Alerts from "../mixins/Alerts.js"
 
 export default {
-  props: ['id'],
-  components: {TemplateForm, ModalCompo, TemplateInfo},
+  components: {ModalCompo},
   data: function() {
     return {
-      modal_id: 'modal_id',
+      template_list: [],
       data: {},
-      old_data: {},
-      modal_info: {},
-      modal_content: [{}],
-      new_modal_info: {
-        title: '确认新建吗？',
-        btn: {
-          text: '新建模板',
-          variant: 'primary',
-          onClick: this.confirm_save
-        }
-      },
-      update_modal_info: {
-        title: '确认更改吗？',
-        btn: {
-          text: '更改模板',
-          variant: 'primary',
-          onClick: this.confirm_save
-        }
-      },
+      modal_id: 'modal_id',
+      delete_visible: false,
       delete_modal_info: {
         title: '确认删除吗？',
         btn: {
-          text: '删除模板',
+          text: '删除处方',
           variant: 'danger',
           onClick: this.confirm_delete
         }
-      }
+      },
+      delete_target: -1,
+      template_info: ''
     };
   },
   created: function() {
-    this.init_page();
+    this.load_template_list();
   },
   computed: {
     for_new: function() {
@@ -76,66 +81,47 @@ export default {
     }
   },
   methods: {
-    init_page: function() {
+    show_delete: function() {
+      this.delete_visible = !this.delete_visible;
+    },
+    load_template_list: function() {
       var this_vm = this;
-      if(this.for_new) {
-        this_vm.data = {};
-      }
-      else {
-        this.get_template_by_id(parseInt(this.id, 10))
-        .then(function ({data}) {
-          this_vm.data = data;
-          this_vm.old_data = _.clone(data);
-        }).catch(function (error) {
-          Alerts.push('该页面不存在!', 'danger');
-          this_vm.$router.back();
-        });
-      }
+      this.get_template()
+      .then(function({data}) {
+        this_vm.template_list = data.list.sort(this_vm.chinese_compare);
+      });
     },
     save_template: function() {
-      if (this.for_new) {
-        Object.assign(this.modal_info, this.new_modal_info);
-        this.modal_content = [this.data];
-      }
-      else {
-        Object.assign(this.modal_info, this.update_modal_info);
-        this.modal_content = [this.old_data, this.data];
-      }
-      this.$bvModal.show(this.modal_id)
-    },
-    delete_template: function() {
-      Object.assign(this.modal_info, this.delete_modal_info);
-      this.modal_content = [this.old_data];
-      this.$bvModal.show(this.modal_id);
-    },
-    confirm_save: function() {
       var this_vm = this;
-      this.post_template(this.data)
+      this.post_template(this_vm.data)
       .then(function({data}) {
         if (data.success) {
-          if (this_vm.for_new) {
-            this_vm.$bvModal.hide(this_vm.modal_id);
-            Alerts.push('新建成功!', 'success');
-            this_vm.$router.push({name: 'template', params: {id: data.data.id}});
-          }
-          else {
-            this_vm.$bvModal.hide(this_vm.modal_id);
-            Alerts.push('修改成功!', 'success');
-          }
+          Alerts.push('新建成功!', 'success');
+          this_vm.load_template_list();
         }
       });
+      this.data.name = "";
+      this.$refs.inputVal.focus();
+    },
+    delte_template(index) {
+      this.delete_target = this.template_list[index].id;
+      this.template_info = this.template_list[index].name;
+      this.$bvModal.show(this.modal_id);
     },
     confirm_delete: function() {
       var this_vm = this;
-      this.delete_template_by_id(this.data.id)
+      this.delete_template_by_id(this.delete_target)
       .then(function({data}) {
         if (data.success) {
           this_vm.$bvModal.hide(this_vm.modal_id);
           Alerts.push('删除成功!', 'success');
-          this_vm.$router.back();
+          this_vm.load_template_list();
         }
       });
-    }
+    },
+    chinese_compare: function(var1, var2) {
+      return var1.name.localeCompare(var2.name, "zh-CN");
+    },
   }
 }
 </script>

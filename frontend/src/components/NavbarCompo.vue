@@ -15,12 +15,9 @@
       <b-navbar-nav>
         <b-nav-item :to="to_home">主页</b-nav-item>
         <b-nav-item :to="to_search">搜索</b-nav-item>
+        <b-nav-item :to="to_new_patient">新建访客</b-nav-item>
         <b-nav-item :to="to_statistic">统计</b-nav-item>
-        <b-nav-item-dropdown text="新建">
-          <b-dropdown-item :to="to_new_patient">新建访客</b-dropdown-item>
-          <b-dropdown-item :to="to_new_case">新建病例</b-dropdown-item>
-          <b-dropdown-item :to="to_new_template">新建模板</b-dropdown-item>
-        </b-nav-item-dropdown>
+        <b-nav-item :to="to_template_management">处方管理</b-nav-item>
       </b-navbar-nav>
 
       <b-navbar-nav class="ml-auto">
@@ -44,8 +41,7 @@ export default {
       to_search: {name: 'search', params: {type: 'patient'}},
       to_statistic: {name: 'statistic'},
       to_new_patient: {name: 'patient', params: {id: 'new'}},
-      to_new_case: {name: 'case', params: {id: 'new'}},
-      to_new_template: {name: 'template', params: {id: 'new'}},
+      to_template_management: {name: 'template', params: {}},
 
       search_param: {
         type: 'patient',
@@ -53,8 +49,7 @@ export default {
       },
       search_options: [
         { value: 'patient', text: '搜访客' },
-        { value: 'case', text: '搜病例' },
-        { value: 'template', text: '搜模板' }
+        { value: 'case', text: '搜病例' }
       ]
     };
   },

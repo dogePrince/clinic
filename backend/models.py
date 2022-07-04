@@ -25,7 +25,6 @@ class Patient(models.Model):
 
 class PrescriptionTemplate(models.Model):
     name = models.CharField('名称', max_length=20)
-    prescription = models.TextField('配方')
 
     def __str__(self):
         return self.name
@@ -36,8 +35,7 @@ class Case(models.Model):
     pub_date = models.DateTimeField('来访日期', default=timezone.now)
     symptom = models.TextField('症状', blank=True, null=True)
     template = models.ForeignKey(PrescriptionTemplate, verbose_name='方剂', on_delete=models.SET_NULL, blank=True, null=True)
-    dose_num = models.IntegerField('份数')
-    prescription = models.TextField('处方')
+    prescription = models.TextField('处方', blank=True, null=True)
 
     def __str__(self):
         return f'{self.patient.name}，{self.symptom}'

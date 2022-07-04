@@ -18,11 +18,7 @@
         <td>{{ template_dict[info[0].template] | get('name') }}</td>
       </tr>
       <tr>
-        <td>份数:</td>
-        <td>{{ info[0].dose_num }}</td>
-      </tr>
-      <tr>
-        <td>处方:</td>
+        <td>附加:</td>
         <td>{{ info[0].prescription }}</td>
       </tr>
     </table>
@@ -53,12 +49,7 @@
         <td>{{ template_dict[info[1].template] | get('name') }}</td>
       </tr>
       <tr>
-        <th scope="row">份数:</th>
-        <td>{{ info[0].dose_num }}</td>
-        <td>{{ info[1].dose_num }}</td>
-      </tr>
-      <tr>
-        <th scope="row">处方:</th>
+        <th scope="row">附加:</th>
         <td>{{ info[0].prescription }}</td>
         <td>{{ info[1].prescription }}</td>
       </tr>

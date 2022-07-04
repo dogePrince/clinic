@@ -4,7 +4,7 @@
       <div class="row">
         <div class="col-6">
           <b-form-group id="patient-group" label="访客" label-for="case_patient">
-            <b-form-select v-model="data.patient" @change="update_patient" :state="patient_valid" id="case_patient">
+            <b-form-select v-model="data.patient" @change="update_patient" :state="patient_valid" id="case_patient" disabled>
               <option v-for="option in patient_options" :value="option.id">{{option.text}}</option>
             </b-form-select>
           </b-form-group>
@@ -31,7 +31,7 @@
       <div class="row">
         <div class="col-12">
           <b-form-group id="case-symptom-group" label="症状" label-for="case_symptom">
-            <b-form-textarea v-model="data.symptom" :state="symptom_valid" id="case_symptom" rows="5" max-rows="20"></b-form-textarea>
+            <b-form-textarea v-model="data.symptom" :state="symptom_valid" id="case_symptom" rows="2" max-rows="20"></b-form-textarea>
           </b-form-group>
         </div>
 
@@ -43,14 +43,8 @@
           </b-form-group>
         </div>
 
-        <div class="col-6">
-          <b-form-group id="dose_num-group" label="份数" label-for="case_dose_num">
-            <b-form-input v-model="data.dose_num" :state="dose_num_valid" id="case_dose_num" type="number"></b-form-input>
-          </b-form-group>
-        </div>
-
         <div class="col-12">
-          <b-form-group id="prescription-group" label="处方" label-for="case_prescription">
+          <b-form-group id="prescription-group" label="附加" label-for="case_prescription">
             <b-form-textarea v-model="data.prescription" :state="prescription_valid" id="case_prescription" rows="5" max-rows="20"></b-form-textarea>
           </b-form-group>
         </div>
@@ -113,19 +107,17 @@ export default {
       return dict;
     },
     patient_valid: function() {
-      return Number.isInteger(this.data.patient);
+      return Number.isInteger(this.data.patient) ? null : false;
     },
     symptom_valid: function() {
-      return this.data.symptom ? true : false && this.data.symptom.length > 0;
+      return this.data.symptom ? null : false && this.data.symptom.length > 0;
     },
     template_valid: function() {
-      return this.data.template === null || Number.isInteger(this.data.template);
-    },
-    dose_num_valid: function() {
-      return Number.isInteger(parseInt(this.data.dose_num));
+      return (this.data.template === null || Number.isInteger(this.data.template)) ? null : false;
     },
     prescription_valid: function() {
-      return this.data.prescription ? true : false && this.data.prescription.length > 0;
+      // return this.data.prescription ? true : false && this.data.prescription.length > 0;
+      return null;
     }
   },
   methods: {

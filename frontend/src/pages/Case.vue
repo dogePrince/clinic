@@ -100,7 +100,7 @@ export default {
         }else if(this.$route.query.case) {
           this.get_case_by_id(parseInt(this.$route.query.case, 10))
           .then(function ({data}) {
-            data.pub_date = new Date(data.pub_date);
+            data.pub_date = new Date();
             this_vm.data = data;
             this_vm.data.id = null;
           });

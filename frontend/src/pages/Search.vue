@@ -5,12 +5,11 @@
     <b-nav tabs align="left">
       <b-nav-item @click="set_type('patient')" :active="query_type=='patient'">搜访客</b-nav-item>
       <b-nav-item @click="set_type('case')" :active="query_type=='case'">搜病例</b-nav-item>
-      <b-nav-item @click="set_type('template')" :active="query_type=='template'">搜模板</b-nav-item>
     </b-nav>
 
     <div class="margin-100"></div>
     <div class="row justify-content-center my-3">
-        <b-input v-model="query_string" class="col-5"></b-input>
+        <b-input v-model="query_string" class="col-5" autofocus></b-input>
         <b-button :to="search_to" squared variant="outline-success"><span class="oi oi-magnifying-glass"/></b-button>
     </div>
     <div v-if="query_type=='case'" class="row justify-content-center my-3">
@@ -42,18 +41,6 @@
       </case-table>
       <b-pagination-nav v-model="case_page.page" :link-gen="case_link_gen" :number-of-pages="case_page.total_page" use-router></b-pagination-nav>
     </div>
-
-    <div v-if="query_type=='template'" class="row justify-content-center my-3">
-      <template-table :template_list="template_list">
-        <caption class="caption-top">
-          <span class="ml-5">模板列表</span>
-          <b-button :to="{name: 'template', params: {id: 'new'}}" class="float-right mr-5" variant="outline-primary" size="sm">
-            新建模板
-          </b-button>
-        </caption>
-      </template-table>
-      <b-pagination-nav v-model="template_page.page" :link-gen="template_link_gen" :number-of-pages="template_page.total_page" use-router></b-pagination-nav>
-    </div>
   </div>
 </template>
 
@@ -61,11 +48,10 @@
 import DatePicker from 'vue2-datepicker'
 import PatientTable from "../components/PatientTable.vue";
 import CaseTable from "../components/CaseTable.vue";
-import TemplateTable from "../components/TemplateTable.vue";
 
 export default {
   props: ['type'],
-  components: {DatePicker, PatientTable, TemplateTable, CaseTable},
+  components: {DatePicker, PatientTable, CaseTable},
   data: function() {
     return {
       query_string: '',
@@ -86,14 +72,7 @@ export default {
       },
       case_query: '',
       case_earliest: '',
-      case_latest: '',
-
-      template_list: [],
-      template_page: {
-        page: 1,
-        total_page: 1
-      },
-      template_query: ''
+      case_latest: ''
     };
   },
   created: function() {
@@ -142,14 +121,10 @@ export default {
       var this_vm = this;
       var page = parseInt(this.$route.query.page, 10);
       if (this.$route.query.query !== undefined) {
-        if (this.$route.params.type == 'case' && this.time_range[0] instanceof Date) {
-          console.log(233)
-        }
         this.get_search(this.$route.fullPath)
         .then(function({data}) {
           this_vm.$route.params.type == 'patient' && this_vm.set_patient_data(data, this_vm.$route.query.query);
           this_vm.$route.params.type == 'case' && this_vm.set_case_data(data, this_vm.$route.query.query);
-          this_vm.$route.params.type == 'template' && this_vm.set_template_data(data, this_vm.$route.query.query);
         });
       }
     },
@@ -167,12 +142,6 @@ export default {
       this.case_earliest = this.earliest;
       this.case_latest = this.latest;
     },
-    set_template_data: function(data, query_string) {
-      this.template_list = data.list;
-      this.template_page.page = data.page_num;
-      this.template_page.total_page = data.total_page;
-      this.template_query = query_string;
-    },
     patient_link_gen: function(pageNum) {
       return {
         name: 'search',
@@ -187,13 +156,6 @@ export default {
         query: { page: pageNum, query: this.case_query, earliest: this.case_earliest, latest: this.case_latest }
       };
     },
-    template_link_gen: function(pageNum) {
-      return {
-        name: 'search',
-        params: { type: 'template' },
-        query: { page: pageNum, query: this.template_query }
-      };
-    }
   }
 
 }

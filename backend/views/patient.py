@@ -46,5 +46,5 @@ def delete(request):
 
 
 def patient_recent_case_dict(patient_obj):
-    case_obj = patient_obj.case_set.last()
+    case_obj = patient_obj.case_set.order_by('-pub_date').first()
     return utils.obj_to_dict(case_obj) if case_obj is not None else {}
