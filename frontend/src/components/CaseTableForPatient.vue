@@ -6,7 +6,7 @@
         <th class="text-center">来访日期</th>
         <th class="text-center">症状</th>
         <th class="text-center">方剂</th>
-        <th class="text-center">处方</th>
+        <th class="text-center">附加</th>
       </tr>
     </thead>
     <tbody>

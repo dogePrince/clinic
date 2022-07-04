@@ -15,7 +15,7 @@ export default {
         'statistic': {name: '统计', weight: 2},
         'patient': {name: '访客', weight: 3},
         'case': {name: '病例', weight: 4},
-        'template': {name: '处方管理', weight: 5}
+        'template': {name: '方剂管理', weight: 5}
       }
     };
   },

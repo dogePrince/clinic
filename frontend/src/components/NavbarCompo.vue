@@ -17,7 +17,7 @@
         <b-nav-item :to="to_search">搜索</b-nav-item>
         <b-nav-item :to="to_new_patient">新建访客</b-nav-item>
         <b-nav-item :to="to_statistic">统计</b-nav-item>
-        <b-nav-item :to="to_template_management">处方管理</b-nav-item>
+        <b-nav-item :to="to_template_management">方剂管理</b-nav-item>
       </b-navbar-nav>
 
       <b-navbar-nav class="ml-auto">

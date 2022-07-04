@@ -2,11 +2,11 @@
   <div class="col-12">
     <div class="row justify-content-center">
       <div class="col-8">
-        <h2>处方管理</h2>
+        <h2>方剂管理</h2>
 
         <div class="row">
           <div class="col-4">
-            <b-input v-model="data.name" id="template-name" placeholder="输入处方名" ref="inputVal" @keyup.enter.native="save_template" autofocus></b-input>
+            <b-input v-model="data.name" id="template-name" placeholder="输入方剂名" ref="inputVal" @keyup.enter.native="save_template" autofocus></b-input>
           </div>
           <div class="col-6">
             <b-button variant="primary" @click="save_template">添加</b-button>
@@ -58,7 +58,7 @@ export default {
       delete_modal_info: {
         title: '确认删除吗？',
         btn: {
-          text: '删除处方',
+          text: '删除方剂',
           variant: 'danger',
           onClick: this.confirm_delete
         }
