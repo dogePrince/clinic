@@ -9,8 +9,8 @@
 
     <div class="margin-100"></div>
     <div class="row justify-content-center my-3">
-        <b-input v-model="query_string" class="col-5" autofocus></b-input>
-        <b-button :to="search_to" squared variant="outline-success"><span class="oi oi-magnifying-glass"/></b-button>
+      <b-input v-model="query_string" @keyup.enter.native="submit_search" class="col-5" autofocus></b-input>
+      <b-button @click="submit_search" type="submit" squared variant="outline-success"><span class="oi oi-magnifying-glass"/></b-button>
     </div>
     <div v-if="query_type=='case'" class="row justify-content-center my-3">
       <span>时间范围：</span>
@@ -22,7 +22,7 @@
       <patient-table :patient_list="patient_list">
         <caption class="caption-top">
           <span class="ml-5">访客列表</span>
-          <b-button :to="{name: 'patient', params: {id: 'new'}}" class="float-right mr-5" variant="outline-primary" size="sm">
+          <b-button @click="to_new_patient"  class="float-right mr-5" variant="outline-primary" size="sm">
             新建访客
           </b-button>
         </caption>
@@ -34,13 +34,17 @@
       <case-table :case_list="case_list">
         <caption class="caption-top">
           <span class="ml-5">病例列表</span>
-          <b-button :to="{name: 'case', params: {id: 'new'}}" class="float-right mr-5" variant="outline-primary" size="sm">
+          <!-- <b-button :to="{name: 'case', params: {id: 'new'}}" class="float-right mr-5" variant="outline-primary" size="sm">
             新建病例
-          </b-button>
+          </b-button> -->
         </caption>
       </case-table>
       <b-pagination-nav v-model="case_page.page" :link-gen="case_link_gen" :number-of-pages="case_page.total_page" use-router></b-pagination-nav>
     </div>
+
+    <modal-compo :id="modal_id" :info="modal_info">
+      是否新建访客“{{query_string}}”
+    </modal-compo>
   </div>
 </template>
 
@@ -48,10 +52,11 @@
 import DatePicker from 'vue2-datepicker'
 import PatientTable from "../components/PatientTable.vue";
 import CaseTable from "../components/CaseTable.vue";
+import ModalCompo from "../components/ModalCompo.vue";
 
 export default {
   props: ['type'],
-  components: {DatePicker, PatientTable, CaseTable},
+  components: {DatePicker, PatientTable, CaseTable, ModalCompo},
   data: function() {
     return {
       query_string: '',
@@ -72,7 +77,18 @@ export default {
       },
       case_query: '',
       case_earliest: '',
-      case_latest: ''
+      case_latest: '',
+
+      modal_id: "modal_id",
+      modal_info: {},
+      new_modal_info: {
+        title: '未搜索到访客',
+        btn: {
+          text: '新建',
+          variant: 'primary',
+          onClick: this.to_new_patient
+        }
+      },
     };
   },
   created: function() {
@@ -117,13 +133,21 @@ export default {
     set_type: function(type) {
       this.query_type = type;
     },
+    submit_search: function() {
+      this.$router.push(this.search_to);
+    },
     do_search: function() {
       var this_vm = this;
       var page = parseInt(this.$route.query.page, 10);
       if (this.$route.query.query !== undefined) {
         this.get_search(this.$route.fullPath)
         .then(function({data}) {
-          this_vm.$route.params.type == 'patient' && this_vm.set_patient_data(data, this_vm.$route.query.query);
+          if (this_vm.$route.params.type == 'patient') {
+            this_vm.set_patient_data(data, this_vm.$route.query.query);
+            if (data.list.length == 0) {
+              this_vm.new_patient();
+            }
+          }
           this_vm.$route.params.type == 'case' && this_vm.set_case_data(data, this_vm.$route.query.query);
         });
       }
@@ -156,8 +180,15 @@ export default {
         query: { page: pageNum, query: this.case_query, earliest: this.case_earliest, latest: this.case_latest }
       };
     },
+    new_patient: function() {
+      Object.assign(this.modal_info, this.new_modal_info);
+      this.modal_content = [this.old_data];
+      this.$bvModal.show(this.modal_id);
+    },
+    to_new_patient: function() {
+      this.$router.push({name: 'patient', params: {id: "new"}, query: {name: this.query_string}})
+    }
   }
-
 }
 </script>
 

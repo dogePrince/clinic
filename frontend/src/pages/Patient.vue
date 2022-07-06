@@ -113,12 +113,10 @@ export default {
       var this_vm = this;
       if (this.for_new) {
         this.data = {register_date: new Date()};
+        this.data.name = this.$route.query.name;
+        this.data.sex = "F";
       }
       else {
-        // if (!this.page) {
-        //   this.page = 1;
-        //   this_vm.$router.push({name: 'patient', params: this.$route.params, query: {page: 1}});
-        // }
         this.get_patient_by_id(this.id, {recent_field: true})
         .then(function ({data}) {
           data.register_date = new Date(data.register_date);
@@ -151,7 +149,7 @@ export default {
         Object.assign(this.modal_info, this.update_modal_info);
         this.modal_content = [this.old_data, this.data];
       }
-      this.$bvModal.show(this.modal_id)
+      this.$bvModal.show(this.modal_id);
     },
     delete_patient: function() {
       Object.assign(this.modal_info, this.delete_modal_info);
